@@ -17,7 +17,7 @@ html,body{height:100%;overflow:hidden;font-family:'Barlow',system-ui,sans-serif;
 #cv-loader .spinner{width:44px;height:44px;border:3px solid rgba(255,255,255,.15);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
 #cv-loader p{color:rgba(255,255,255,.6);font-size:14px;font-weight:500}
 .loader-logo{display:flex;align-items:center;font-family:'Barlow',sans-serif;font-weight:800;font-size:32px;color:#fff;letter-spacing:3px}
-.loader-logo-sq{width:22px;height:26px;background:#fff;border-radius:2px;margin-left:3px;flex-shrink:0}
+.loader-logo-sq{width:22px;height:27px;background:#fff;border-radius:0;margin-left:2px;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ── App shell ── */
@@ -25,8 +25,8 @@ html,body{height:100%;overflow:hidden;font-family:'Barlow',system-ui,sans-serif;
 
 /* ── Header ── */
 header{flex:0 0 54px;background:#111;display:flex;align-items:center;padding:0 20px;gap:20px;border-bottom:1px solid #2a2a2a}
-.logo{display:flex;align-items:center;font-family:'Barlow',sans-serif;font-weight:800;font-size:20px;color:#fff;letter-spacing:2.5px;white-space:nowrap;flex-shrink:0}
-.logo-sq{width:13px;height:16px;background:#fff;border-radius:1px;margin-left:2px;flex-shrink:0}
+.logo{display:flex;align-items:center;font-family:'Barlow',sans-serif;font-weight:800;font-size:20px;color:#fff;letter-spacing:2px;white-space:nowrap;flex-shrink:0}
+.logo-sq{width:14px;height:17px;background:#fff;border-radius:0;margin-left:1px;flex-shrink:0;display:inline-block}
 .tab-bar{display:flex;gap:2px;margin-left:16px}
 .tab-btn{background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,.45);padding:6px 16px;cursor:pointer;font-size:13px;font-weight:600;font-family:'Barlow',inherit;transition:all .15s;white-space:nowrap;height:54px;margin-bottom:-1px}
 .tab-btn:hover{color:rgba(255,255,255,.8)}
@@ -232,7 +232,7 @@ select:focus{border-color:#111;box-shadow:0 0 0 3px rgba(0,0,0,.07)}
 
       <!-- Auto panel -->
       <div class="cp-section" id="mode-panel-auto">
-        <div class="info-box">Scans image corners and edges to locate watermarks. Works best for logos and text in fixed positions (corners, bottom).</div>
+        <div class="info-box">Scans the full image for watermark-like shapes. Works best for text/logo watermarks on walls, skies, and uniform backgrounds.</div>
         <button class="btn btn-primary" id="auto-remove-btn" disabled>Auto-Remove All &amp; Download</button>
         <div class="progress-wrap" id="auto-progress-wrap" style="display:none">
           <div class="progress-bar"><div class="progress-fill" id="auto-progress-fill"></div></div>
@@ -524,24 +524,123 @@ function yieldFrame() { return new Promise(function(r){ setTimeout(r, 20); }); }
 // SECTION 3 — INPAINTING ENGINE
 // ══════════════════════════════════════════════
 
-// Refactored pure inpaint helper — NO dilation, uses exact mask
+// Smart inpaint: scanline-interpolation for simple backgrounds (no blur!), OpenCV NS fallback
 async function inpaintWithMask(origData, maskMat, w, h) {
-  var srcMat = null, srcBGR = null, dstMat = null, dstRGBA = null;
+  var maskData = maskMat.data; // Uint8Array, 255=masked
+
+  // Find mask bounding rect
+  var x1=w, y1=h, x2=0, y2=0;
+  for (var y=0; y<h; y++) for (var x=0; x<w; x++) {
+    if (maskData[y*w+x] > 128) {
+      if (x<x1)x1=x; if (x>x2)x2=x; if (y<y1)y1=y; if (y>y2)y2=y;
+    }
+  }
+  if (x2 < x1) return origData;
+  x2++; y2++;
+
+  // Sample a 28px border ring just outside the bounding rect
+  var band=28, pixels=origData.data, r=0,g=0,b=0,n=0, vr=0,vg=0,vb=0;
+  var samples = [];
+  function smpXY(sx,sy){ if(sx<0||sx>=w||sy<0||sy>=h)return; var i=(sy*w+sx)*4; samples.push(pixels[i],pixels[i+1],pixels[i+2]); r+=pixels[i];g+=pixels[i+1];b+=pixels[i+2];n++; }
+  for(var y=Math.max(0,y1-band);y<Math.min(h,y1);y++) for(var x=x1;x<x2;x+=2)smpXY(x,y);
+  for(var y=Math.max(0,y2);y<Math.min(h,y2+band);y++) for(var x=x1;x<x2;x+=2)smpXY(x,y);
+  for(var x=Math.max(0,x1-band);x<Math.min(w,x1);x++) for(var y=y1;y<y2;y+=2)smpXY(x,y);
+  for(var x=Math.max(0,x2);x<Math.min(w,x2+band);x++) for(var y=y1;y<y2;y+=2)smpXY(x,y);
+
+  var stdDev = 99;
+  if (n > 0) {
+    var mr=r/n, mg=g/n, mb=b/n;
+    for(var i=0;i<samples.length;i+=3){vr+=(samples[i]-mr)*(samples[i]-mr);vg+=(samples[i+1]-mg)*(samples[i+1]-mg);vb+=(samples[i+2]-mb)*(samples[i+2]-mb);}
+    stdDev = Math.sqrt((vr+vg+vb)/(3*n));
+  }
+
+  // Simple/gradient background → scanline interpolation fill (no blur, perfect for walls/sky)
+  if (stdDev < 42) return gradientFill(origData, maskData, w, h, x1, y1, x2, y2);
+
+  // Complex background → OpenCV Navier-Stokes inpainting
+  var srcMat=null, srcBGR=null, dstMat=null, dstRGBA=null;
   try {
     srcMat = cv.matFromImageData(origData);
-    srcBGR = new cv.Mat();
-    cv.cvtColor(srcMat, srcBGR, cv.COLOR_RGBA2BGR);
-    dstMat = new cv.Mat();
-    cv.inpaint(srcBGR, maskMat, dstMat, State.inpaintRadius, cv.INPAINT_TELEA);
-    dstRGBA = new cv.Mat();
-    cv.cvtColor(dstMat, dstRGBA, cv.COLOR_BGR2RGBA);
+    srcBGR = new cv.Mat(); cv.cvtColor(srcMat, srcBGR, cv.COLOR_RGBA2BGR);
+    dstMat = new cv.Mat(); cv.inpaint(srcBGR, maskMat, dstMat, 5, cv.INPAINT_NS);
+    dstRGBA = new cv.Mat(); cv.cvtColor(dstMat, dstRGBA, cv.COLOR_BGR2RGBA);
     return new ImageData(new Uint8ClampedArray(dstRGBA.data), w, h);
   } finally {
-    if (srcMat)  srcMat.delete();
-    if (srcBGR)  srcBGR.delete();
-    if (dstMat)  dstMat.delete();
-    if (dstRGBA) dstRGBA.delete();
+    if(srcMat) srcMat.delete(); if(srcBGR) srcBGR.delete();
+    if(dstMat) dstMat.delete(); if(dstRGBA) dstRGBA.delete();
   }
+}
+
+// Scanline-interpolation fill: each masked pixel gets inverse-distance-weighted blend from
+// nearest real pixels in 4 directions. Zero blur, perfect for uniform/gradient backgrounds.
+function gradientFill(origData, maskData, w, h, mx1, my1, mx2, my2) {
+  var src = origData.data;
+  var result = new Uint8ClampedArray(src);
+  var mw = mx2-mx1, mh = my2-my1, n = mw*mh;
+  var INF = 99999;
+
+  // 4 compact arrays: one per direction, each stores packed RGB (lower 24 bits) + distance (upper bits kept separate)
+  var lC=new Uint32Array(n), lD=new Uint32Array(n).fill(INF);
+  var rC=new Uint32Array(n), rD=new Uint32Array(n).fill(INF);
+  var tC=new Uint32Array(n), tD=new Uint32Array(n).fill(INF);
+  var bC=new Uint32Array(n), bD=new Uint32Array(n).fill(INF);
+
+  function pack(i){ return (src[i]<<16)|(src[i+1]<<8)|src[i+2]; }
+
+  // Left pass: scan full row left→right, store in mask rect
+  for(var y=my1;y<my2;y++){
+    var cc=0,cd=INF;
+    for(var x=0;x<mx2;x++){
+      var ii=y*w+x;
+      if(maskData[ii]<128){cc=pack(ii*4);cd=0;}else if(cd<INF)cd++;
+      if(x>=mx1){var mi=(y-my1)*mw+(x-mx1);lC[mi]=cc;lD[mi]=cd;}
+    }
+  }
+  // Right pass: scan full row right→left
+  for(var y=my1;y<my2;y++){
+    var cc=0,cd=INF;
+    for(var x=w-1;x>=mx1;x--){
+      var ii=y*w+x;
+      if(maskData[ii]<128){cc=pack(ii*4);cd=0;}else if(cd<INF)cd++;
+      if(x<mx2){var mi=(y-my1)*mw+(x-mx1);rC[mi]=cc;rD[mi]=cd;}
+    }
+  }
+  // Top pass: scan full column top→bottom
+  for(var x=mx1;x<mx2;x++){
+    var cc=0,cd=INF;
+    for(var y=0;y<my2;y++){
+      var ii=y*w+x;
+      if(maskData[ii]<128){cc=pack(ii*4);cd=0;}else if(cd<INF)cd++;
+      if(y>=my1){var mi=(y-my1)*mw+(x-mx1);tC[mi]=cc;tD[mi]=cd;}
+    }
+  }
+  // Bottom pass: scan full column bottom→top
+  for(var x=mx1;x<mx2;x++){
+    var cc=0,cd=INF;
+    for(var y=h-1;y>=my1;y--){
+      var ii=y*w+x;
+      if(maskData[ii]<128){cc=pack(ii*4);cd=0;}else if(cd<INF)cd++;
+      if(y<my2){var mi=(y-my1)*mw+(x-mx1);bC[mi]=cc;bD[mi]=cd;}
+    }
+  }
+
+  // Blend 4 directions with inverse-distance weighting
+  for(var y=my1;y<my2;y++){
+    for(var x=mx1;x<mx2;x++){
+      var ii=y*w+x;
+      if(maskData[ii]<128) continue;
+      var mi=(y-my1)*mw+(x-mx1);
+      var wL=1/(lD[mi]+1),wR=1/(rD[mi]+1),wT=1/(tD[mi]+1),wB=1/(bD[mi]+1);
+      var ws=wL+wR+wT+wB; if(!ws)continue;
+      var fr=((lC[mi]>>16&255)*wL+(rC[mi]>>16&255)*wR+(tC[mi]>>16&255)*wT+(bC[mi]>>16&255)*wB)/ws;
+      var fg=((lC[mi]>>8&255)*wL+(rC[mi]>>8&255)*wR+(tC[mi]>>8&255)*wT+(bC[mi]>>8&255)*wB)/ws;
+      var fb=((lC[mi]&255)*wL+(rC[mi]&255)*wR+(tC[mi]&255)*wT+(bC[mi]&255)*wB)/ws;
+      var pi=ii*4; result[pi]=fr+.5|0; result[pi+1]=fg+.5|0; result[pi+2]=fb+.5|0;
+    }
+  }
+
+  lC=lD=rC=rD=tC=tD=bC=bD=null; // free
+  return new ImageData(result, w, h);
 }
 
 // Auto-detect watermark using edge analysis in candidate zones
@@ -552,15 +651,18 @@ function autoDetectWatermarkMask(srcMat, w, h) {
     gray = new cv.Mat();
     cv.cvtColor(srcMat, gray, cv.COLOR_RGBA2GRAY);
 
-    // Candidate zones: corners + bottom center (where watermarks live)
+    // Scoring zones: corners + bottom + CENTER (watermarks can be anywhere, incl. middle)
     zoneMask = cv.Mat.zeros(h, w, cv.CV_8UC1);
     var zones = [
-      [0,             0,              Math.round(w*.38), Math.round(h*.28)], // TL
-      [Math.round(w*.62), 0,          Math.round(w*.38), Math.round(h*.28)], // TR
-      [0,             Math.round(h*.72), Math.round(w*.38), Math.round(h*.28)], // BL
-      [Math.round(w*.62), Math.round(h*.72), Math.round(w*.38), Math.round(h*.28)], // BR
-      [Math.round(w*.22), Math.round(h*.70), Math.round(w*.56), Math.round(h*.30)], // BC
+      [0,               0,               Math.round(w*.42), Math.round(h*.32)], // TL
+      [Math.round(w*.58), 0,             Math.round(w*.42), Math.round(h*.32)], // TR
+      [0,               Math.round(h*.68), Math.round(w*.42), Math.round(h*.32)], // BL
+      [Math.round(w*.58), Math.round(h*.68), Math.round(w*.42), Math.round(h*.32)], // BR
+      [Math.round(w*.12), Math.round(h*.62), Math.round(w*.76), Math.round(h*.38)], // BC wide
+      [Math.round(w*.05), Math.round(h*.18), Math.round(w*.90), Math.round(h*.64)], // CENTER band
     ];
+    // Zone weights for scoring (center is valid but scored lower than corners)
+    var zoneWeights = [1.0, 1.0, 1.0, 1.0, 0.8, 0.6];
     zones.forEach(function(z) {
       var x2 = Math.min(w, z[0]+z[2]), y2 = Math.min(h, z[1]+z[3]);
       cv.rectangle(zoneMask, new cv.Point(z[0], z[1]), new cv.Point(x2, y2), new cv.Scalar(255), -1);
@@ -569,13 +671,12 @@ function autoDetectWatermarkMask(srcMat, w, h) {
     blurred = new cv.Mat();
     cv.GaussianBlur(gray, blurred, new cv.Size(3, 3), 0);
     edges = new cv.Mat();
-    cv.Canny(blurred, edges, 35, 110);
+    cv.Canny(blurred, edges, 22, 80); // Lower thresholds catch semi-transparent watermarks
 
-    // Restrict edges to candidate zones
-    cv.bitwise_and(edges, zoneMask, edges);
+    // No zone restriction — scan full image so center watermarks are detected
 
-    // Dilate to merge strokes into blobs
-    dilKernel = cv.Mat.ones(18, 18, cv.CV_8UC1);
+    // Dilate to merge text strokes and logo pieces into one blob
+    dilKernel = cv.Mat.ones(22, 22, cv.CV_8UC1);
     dilated = new cv.Mat();
     cv.dilate(edges, dilated, dilKernel);
 
@@ -589,27 +690,31 @@ function autoDetectWatermarkMask(srcMat, w, h) {
     for (var i = 0; i < contours.size(); i++) {
       var rect = cv.boundingRect(contours.get(i));
       var area = rect.width * rect.height;
-      if (area < imgArea * 0.0015 || area > imgArea * 0.42) continue;
+      if (area < imgArea * 0.001 || area > imgArea * 0.55) continue;
 
-      // Zone overlap score
+      // Zone overlap score (weighted: corner zones preferred over center)
       var zoneOverlap = 0;
-      zones.forEach(function(z) {
+      zones.forEach(function(z, zi) {
         var ix  = Math.max(rect.x, z[0]), iy  = Math.max(rect.y, z[1]);
         var ix2 = Math.min(rect.x + rect.width,  z[0]+z[2]);
         var iy2 = Math.min(rect.y + rect.height, z[1]+z[3]);
         if (ix2 > ix && iy2 > iy) {
-          zoneOverlap = Math.max(zoneOverlap, (ix2-ix)*(iy2-iy) / area);
+          var overlap = ((ix2-ix)*(iy2-iy) / area) * zoneWeights[zi];
+          zoneOverlap = Math.max(zoneOverlap, overlap);
         }
       });
 
-      // Aspect ratio (text is wide)
-      var aspect = Math.min(rect.width / Math.max(rect.height, 1), 10) / 10;
-      var score  = zoneOverlap * 0.70 + aspect * 0.30;
+      // Aspect ratio (watermarks tend to be wide horizontal bands)
+      var aspect = Math.min(rect.width / Math.max(rect.height, 1), 12) / 12;
+      // Size fit: penalise very tiny and very huge contours
+      var relArea = area / imgArea;
+      var sizeFit = (relArea > 0.005 && relArea < 0.50) ? 1.0 : 0.3;
+      var score = aspect * 0.45 + zoneOverlap * 0.40 + sizeFit * 0.15;
 
       if (score > bestScore) { bestScore = score; bestRect = rect; }
     }
 
-    if (!bestRect || bestScore < 0.25) return null;
+    if (!bestRect || bestScore < 0.12) return null;
 
     // Expand bounding box by 12% for safety
     var ex = Math.round(bestRect.width  * 0.12);
