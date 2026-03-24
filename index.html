@@ -222,7 +222,7 @@ select:focus{border-color:#111;box-shadow:0 0 0 3px rgba(0,0,0,.07)}
       <!-- Primary action -->
       <div class="cp-section">
         <button class="btn btn-primary" id="auto-remove-btn" disabled>▶ Remove Watermark</button>
-        <p class="hint">Auto-detects and removes the watermark. Best on walls, sky, and uniform backgrounds.</p>
+        <p class="hint">AI-powered removal using LaMa deep learning. First click downloads the model (~200 MB, cached forever after).</p>
       </div>
 
       <!-- Result preview (shown after processing) -->
@@ -381,6 +381,7 @@ window.Module = {
   }
 };
 </script>
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.3/dist/ort.min.js"></script>
 <script async src="https://docs.opencv.org/4.8.0/opencv.js" onerror="cvLoadError()"></script>
 <script>
 function cvLoadError() {
@@ -482,13 +483,33 @@ function toast(msg, type) {
 function yieldFrame() { return new Promise(function(r){ setTimeout(r, 20); }); }
 
 // ══════════════════════════════════════════════
-// SECTION 3 — INPAINTING ENGINE
+// SECTION 3 — INPAINTING ENGINE (LaMa AI)
 // ══════════════════════════════════════════════
+var _lamaSession = null;
+var _lamaLoadPromise = null;
 
-// Smart fill: scanline interpolation for simple backgrounds, OpenCV NS for complex ones
+async function getLaMaSession() {
+  if (_lamaSession) return _lamaSession;
+  if (_lamaLoadPromise) return await _lamaLoadPromise;
+  _lamaLoadPromise = (async function() {
+    try {
+      ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.3/dist/';
+      ort.env.wasm.numThreads = 1;
+      _lamaSession = await ort.InferenceSession.create(
+        'https://huggingface.co/Carve/LaMa-ONNX/resolve/main/lama_fp32.onnx',
+        { executionProviders: ['wasm'] }
+      );
+      return _lamaSession;
+    } catch(e) {
+      _lamaLoadPromise = null;
+      throw new Error('Failed to load AI model: ' + e.message);
+    }
+  })();
+  return await _lamaLoadPromise;
+}
+
 async function inpaintWithMask(origData, maskMat, w, h) {
   var maskData = maskMat.data;
-
   // Find mask bounding rect
   var x1=w, y1=h, x2=0, y2=0;
   for (var y=0; y<h; y++) for (var x=0; x<w; x++) {
@@ -498,99 +519,95 @@ async function inpaintWithMask(origData, maskMat, w, h) {
   }
   if (x2 < x1) return origData;
   x2++; y2++;
-
-  // Sample 28px border ring outside bounding rect to estimate background complexity
-  var band=28, pixels=origData.data, r=0,g=0,b=0,n=0;
-  var samples=[];
-  function smp(sx,sy){ if(sx<0||sx>=w||sy<0||sy>=h)return; var i=(sy*w+sx)*4; samples.push(pixels[i],pixels[i+1],pixels[i+2]); r+=pixels[i];g+=pixels[i+1];b+=pixels[i+2];n++; }
-  for(var y=Math.max(0,y1-band);y<Math.min(h,y1);y++) for(var x=x1;x<x2;x+=2)smp(x,y);
-  for(var y=Math.max(0,y2);y<Math.min(h,y2+band);y++) for(var x=x1;x<x2;x+=2)smp(x,y);
-  for(var x=Math.max(0,x1-band);x<Math.min(w,x1);x++) for(var y=y1;y<y2;y+=2)smp(x,y);
-  for(var x=Math.max(0,x2);x<Math.min(w,x2+band);x++) for(var y=y1;y<y2;y+=2)smp(x,y);
-
-  var stdDev = 99;
-  if (n > 0) {
-    var mr=r/n, mg=g/n, mb=b/n, vr=0,vg=0,vb=0;
-    for(var i=0;i<samples.length;i+=3){vr+=(samples[i]-mr)*(samples[i]-mr);vg+=(samples[i+1]-mg)*(samples[i+1]-mg);vb+=(samples[i+2]-mb)*(samples[i+2]-mb);}
-    stdDev = Math.sqrt((vr+vg+vb)/(3*n));
-  }
-
-  // Simple/gradient background → scanline fill (zero blur, perfect for walls/sky)
-  if (stdDev < 38) return gradientFill(origData, maskData, w, h, x1, y1, x2, y2);
-
-  // Complex background → OpenCV TELEA inpainting (value=1, most stable in OpenCV.js)
-  var srcMat2=null, srcBGR=null, dstMat=null, dstRGBA=null;
+  // Pad crop for context (50% of mask dims, min 60px each side)
+  var padX=Math.max(60,Math.round((x2-x1)*0.5)), padY=Math.max(60,Math.round((y2-y1)*0.5));
+  var cx1=Math.max(0,x1-padX), cy1=Math.max(0,y1-padY);
+  var cx2=Math.min(w,x2+padX), cy2=Math.min(h,y2+padY);
   try {
-    srcMat2 = cv.matFromImageData(origData);
-    srcBGR = new cv.Mat(); cv.cvtColor(srcMat2, srcBGR, cv.COLOR_RGBA2BGR);
-    dstMat = new cv.Mat(); cv.inpaint(srcBGR, maskMat, dstMat, 5, 1 /* INPAINT_TELEA */);
-    dstRGBA = new cv.Mat(); cv.cvtColor(dstMat, dstRGBA, cv.COLOR_BGR2RGBA);
-    return new ImageData(new Uint8ClampedArray(dstRGBA.data), w, h);
-  } finally {
-    if(srcMat2) srcMat2.delete(); if(srcBGR) srcBGR.delete();
-    if(dstMat) dstMat.delete(); if(dstRGBA) dstRGBA.delete();
+    return await runLaMaInpaint(origData, maskData, w, h, cx1, cy1, cx2, cy2);
+  } catch(e) {
+    console.warn('LaMa failed, falling back:', e);
+    return gradientFill(origData, maskData, w, h, x1, y1, x2, y2);
   }
 }
 
-// Scanline fill: for each masked pixel, inverse-distance blend from nearest real pixel in 4 directions
+async function runLaMaInpaint(origData, maskData, w, h, cx1, cy1, cx2, cy2) {
+  var session = await getLaMaSession();
+  var S=512, cw=cx2-cx1, ch=cy2-cy1;
+
+  // Draw full image onto a canvas then crop region → scale to 512x512
+  var srcC=document.createElement('canvas'); srcC.width=w; srcC.height=h;
+  srcC.getContext('2d').putImageData(origData, 0, 0);
+  var cropC=document.createElement('canvas'); cropC.width=S; cropC.height=S;
+  cropC.getContext('2d').drawImage(srcC, cx1, cy1, cw, ch, 0, 0, S, S);
+  var imgPx=cropC.getContext('2d').getImageData(0,0,S,S).data;
+
+  // Build mask crop → scale to 512x512
+  var mkC=document.createElement('canvas'); mkC.width=cw; mkC.height=ch;
+  var mkD=mkC.getContext('2d').createImageData(cw,ch);
+  for(var py=0;py<ch;py++) for(var px=0;px<cw;px++){
+    var v=maskData[(cy1+py)*w+(cx1+px)]>128?255:0, pi=(py*cw+px)*4;
+    mkD.data[pi]=v;mkD.data[pi+1]=v;mkD.data[pi+2]=v;mkD.data[pi+3]=255;
+  }
+  mkC.getContext('2d').putImageData(mkD,0,0);
+  var mkS=document.createElement('canvas'); mkS.width=S; mkS.height=S;
+  mkS.getContext('2d').drawImage(mkC,0,0,S,S);
+  var mskPx=mkS.getContext('2d').getImageData(0,0,S,S).data;
+
+  // Build ONNX tensors
+  var imgT=new Float32Array(3*S*S), mskT=new Float32Array(S*S);
+  for(var i=0;i<S*S;i++){
+    imgT[i]=imgPx[i*4]/255; imgT[S*S+i]=imgPx[i*4+1]/255; imgT[2*S*S+i]=imgPx[i*4+2]/255;
+    mskT[i]=mskPx[i*4]>128?1:0;
+  }
+  var out=await session.run({
+    image:new ort.Tensor('float32',imgT,[1,3,S,S]),
+    mask: new ort.Tensor('float32',mskT,[1,1,S,S])
+  });
+  var outD=out[Object.keys(out)[0]].data; // [1,3,S,S] values 0-255
+
+  // Decode output → canvas at 512x512 → scale back to crop region size
+  var oImgD=new ImageData(S,S);
+  for(var i=0;i<S*S;i++){
+    oImgD.data[i*4]=Math.max(0,Math.min(255,outD[i]|0));
+    oImgD.data[i*4+1]=Math.max(0,Math.min(255,outD[S*S+i]|0));
+    oImgD.data[i*4+2]=Math.max(0,Math.min(255,outD[2*S*S+i]|0));
+    oImgD.data[i*4+3]=255;
+  }
+  var oC=document.createElement('canvas'); oC.width=S; oC.height=S;
+  oC.getContext('2d').putImageData(oImgD,0,0);
+  var sbC=document.createElement('canvas'); sbC.width=cw; sbC.height=ch;
+  sbC.getContext('2d').drawImage(oC,0,0,cw,ch);
+  var oPx=sbC.getContext('2d').getImageData(0,0,cw,ch).data;
+
+  // Composite: paste result only at masked pixels
+  var result=new Uint8ClampedArray(origData.data);
+  for(var py=0;py<ch;py++) for(var px=0;px<cw;px++){
+    var gy=cy1+py, gx=cx1+px;
+    if(maskData[gy*w+gx]>128){
+      var gi=(gy*w+gx)*4, li=(py*cw+px)*4;
+      result[gi]=oPx[li]; result[gi+1]=oPx[li+1]; result[gi+2]=oPx[li+2]; result[gi+3]=255;
+    }
+  }
+  return new ImageData(result,w,h);
+}
+
+// Fallback scanline fill (used when LaMa fails)
 function gradientFill(origData, maskData, w, h, mx1, my1, mx2, my2) {
-  var src = origData.data;
-  var result = new Uint8ClampedArray(src);
+  var src=origData.data, result=new Uint8ClampedArray(src);
   var mw=mx2-mx1, mh=my2-my1, n=mw*mh, INF=99999;
-
-  var lC=new Uint32Array(n), lD=new Uint32Array(n).fill(INF);
-  var rC=new Uint32Array(n), rD=new Uint32Array(n).fill(INF);
-  var tC=new Uint32Array(n), tD=new Uint32Array(n).fill(INF);
-  var bC=new Uint32Array(n), bD=new Uint32Array(n).fill(INF);
-  function pack(i){ return (src[i]<<16)|(src[i+1]<<8)|src[i+2]; }
-
-  for(var y=my1;y<my2;y++){
-    var cc=0,cd=INF;
-    for(var x=0;x<mx2;x++){
-      var ii=y*w+x;
-      if(maskData[ii]<128){cc=pack(ii*4);cd=0;}else if(cd<INF)cd++;
-      if(x>=mx1){var mi=(y-my1)*mw+(x-mx1);lC[mi]=cc;lD[mi]=cd;}
-    }
-  }
-  for(var y=my1;y<my2;y++){
-    var cc=0,cd=INF;
-    for(var x=w-1;x>=mx1;x--){
-      var ii=y*w+x;
-      if(maskData[ii]<128){cc=pack(ii*4);cd=0;}else if(cd<INF)cd++;
-      if(x<mx2){var mi=(y-my1)*mw+(x-mx1);rC[mi]=cc;rD[mi]=cd;}
-    }
-  }
-  for(var x=mx1;x<mx2;x++){
-    var cc=0,cd=INF;
-    for(var y=0;y<my2;y++){
-      var ii=y*w+x;
-      if(maskData[ii]<128){cc=pack(ii*4);cd=0;}else if(cd<INF)cd++;
-      if(y>=my1){var mi=(y-my1)*mw+(x-mx1);tC[mi]=cc;tD[mi]=cd;}
-    }
-  }
-  for(var x=mx1;x<mx2;x++){
-    var cc=0,cd=INF;
-    for(var y=h-1;y>=my1;y--){
-      var ii=y*w+x;
-      if(maskData[ii]<128){cc=pack(ii*4);cd=0;}else if(cd<INF)cd++;
-      if(y<my2){var mi=(y-my1)*mw+(x-mx1);bC[mi]=cc;bD[mi]=cd;}
-    }
-  }
-
-  for(var y=my1;y<my2;y++){
-    for(var x=mx1;x<mx2;x++){
-      var ii=y*w+x; if(maskData[ii]<128) continue;
-      var mi=(y-my1)*mw+(x-mx1);
-      var wL=1/(lD[mi]+1),wR=1/(rD[mi]+1),wT=1/(tD[mi]+1),wB=1/(bD[mi]+1);
-      var ws=wL+wR+wT+wB; if(!ws)continue;
-      var fr=((lC[mi]>>16&255)*wL+(rC[mi]>>16&255)*wR+(tC[mi]>>16&255)*wT+(bC[mi]>>16&255)*wB)/ws;
-      var fg=((lC[mi]>>8&255)*wL+(rC[mi]>>8&255)*wR+(tC[mi]>>8&255)*wT+(bC[mi]>>8&255)*wB)/ws;
-      var fb=((lC[mi]&255)*wL+(rC[mi]&255)*wR+(tC[mi]&255)*wT+(bC[mi]&255)*wB)/ws;
-      var pi=ii*4; result[pi]=fr+.5|0; result[pi+1]=fg+.5|0; result[pi+2]=fb+.5|0;
-    }
-  }
+  var lC=new Uint32Array(n),lD=new Uint32Array(n).fill(INF);
+  var rC=new Uint32Array(n),rD=new Uint32Array(n).fill(INF);
+  var tC=new Uint32Array(n),tD=new Uint32Array(n).fill(INF);
+  var bC=new Uint32Array(n),bD=new Uint32Array(n).fill(INF);
+  function pack(i){return(src[i]<<16)|(src[i+1]<<8)|src[i+2];}
+  for(var y=my1;y<my2;y++){var cc=0,cd=INF;for(var x=0;x<mx2;x++){var ii=y*w+x;if(maskData[ii]<128){cc=pack(ii*4);cd=0;}else if(cd<INF)cd++;if(x>=mx1){var mi=(y-my1)*mw+(x-mx1);lC[mi]=cc;lD[mi]=cd;}}}
+  for(var y=my1;y<my2;y++){var cc=0,cd=INF;for(var x=w-1;x>=mx1;x--){var ii=y*w+x;if(maskData[ii]<128){cc=pack(ii*4);cd=0;}else if(cd<INF)cd++;if(x<mx2){var mi=(y-my1)*mw+(x-mx1);rC[mi]=cc;rD[mi]=cd;}}}
+  for(var x=mx1;x<mx2;x++){var cc=0,cd=INF;for(var y=0;y<my2;y++){var ii=y*w+x;if(maskData[ii]<128){cc=pack(ii*4);cd=0;}else if(cd<INF)cd++;if(y>=my1){var mi=(y-my1)*mw+(x-mx1);tC[mi]=cc;tD[mi]=cd;}}}
+  for(var x=mx1;x<mx2;x++){var cc=0,cd=INF;for(var y=h-1;y>=my1;y--){var ii=y*w+x;if(maskData[ii]<128){cc=pack(ii*4);cd=0;}else if(cd<INF)cd++;if(y<my2){var mi=(y-my1)*mw+(x-mx1);bC[mi]=cc;bD[mi]=cd;}}}
+  for(var y=my1;y<my2;y++){for(var x=mx1;x<mx2;x++){var ii=y*w+x;if(maskData[ii]<128)continue;var mi=(y-my1)*mw+(x-mx1);var wL=1/(lD[mi]+1),wR=1/(rD[mi]+1),wT=1/(tD[mi]+1),wB=1/(bD[mi]+1);var ws=wL+wR+wT+wB;if(!ws)continue;var fr=((lC[mi]>>16&255)*wL+(rC[mi]>>16&255)*wR+(tC[mi]>>16&255)*wT+(bC[mi]>>16&255)*wB)/ws;var fg=((lC[mi]>>8&255)*wL+(rC[mi]>>8&255)*wR+(tC[mi]>>8&255)*wT+(bC[mi]>>8&255)*wB)/ws;var fb=((lC[mi]&255)*wL+(rC[mi]&255)*wR+(tC[mi]&255)*wT+(bC[mi]&255)*wB)/ws;var pi=ii*4;result[pi]=fr+.5|0;result[pi+1]=fg+.5|0;result[pi+2]=fb+.5|0;}}
   lC=lD=rC=rD=tC=tD=bC=bD=null;
-  return new ImageData(result, w, h);
+  return new ImageData(result,w,h);
 }
 
 // ══════════════════════════════════════════════
@@ -601,21 +618,35 @@ function gradientFill(origData, maskData, w, h, mx1, my1, mx2, my2) {
 // Returns {mask, bx1, by1, bx2, by2} or null.
 // ══════════════════════════════════════════════
 function autoDetectWatermarkMask(srcMat, w, h) {
-  var gray=null, blurSm=null, edges=null, dilKernel=null, dilated=null;
+  var gray=null, blurSm=null, blurBig=null, edges=null, anomaly=null, combined=null, dilKernel=null, dilated=null;
   var contours=null, hierarchy=null, outputMask=null;
   try {
     gray = new cv.Mat();
     cv.cvtColor(srcMat, gray, cv.COLOR_RGBA2GRAY);
 
+    // Method 1: Color anomaly — compare each pixel to its blurred surroundings
+    // Catches semi-transparent watermarks that Canny misses
+    blurBig = new cv.Mat();
+    var ks=Math.max(41,Math.floor(Math.min(w,h)*0.045)); if(ks%2===0)ks++;
+    cv.GaussianBlur(gray, blurBig, new cv.Size(ks,ks), 0);
+    anomaly = new cv.Mat();
+    cv.absdiff(gray, blurBig, anomaly);
+    cv.threshold(anomaly, anomaly, 12, 255, cv.THRESH_BINARY);
+
+    // Method 2: Canny edges — catches sharp logo outlines
     blurSm = new cv.Mat();
     cv.GaussianBlur(gray, blurSm, new cv.Size(3,3), 0);
     edges = new cv.Mat();
     cv.Canny(blurSm, edges, 30, 90);
 
-    // Dilate to merge individual text strokes into solid blobs
+    // Combine both
+    combined = new cv.Mat();
+    cv.bitwise_or(edges, anomaly, combined);
+
+    // Dilate to merge individual strokes into solid blobs
     dilKernel = cv.Mat.ones(22, 22, cv.CV_8UC1);
     dilated = new cv.Mat();
-    cv.dilate(edges, dilated, dilKernel);
+    cv.dilate(combined, dilated, dilKernel);
 
     contours  = new cv.MatVector();
     hierarchy = new cv.Mat();
@@ -697,7 +728,7 @@ function autoDetectWatermarkMask(srcMat, w, h) {
     if(outputMask){ outputMask.delete(); outputMask=null; }
     return null;
   } finally {
-    [gray,blurSm,edges,dilKernel,dilated,contours,hierarchy].forEach(function(m){ if(m) m.delete(); });
+    [gray,blurSm,blurBig,edges,anomaly,combined,dilKernel,dilated,contours,hierarchy].forEach(function(m){ if(m) m.delete(); });
   }
 }
 
@@ -820,7 +851,7 @@ async function runAutoRemoveCurrent() {
   if(idx < 0){ toast('Select an image first','error'); return; }
   var item = State.removeQueue[idx];
   var btn  = document.getElementById('auto-remove-btn');
-  btn.disabled = true; btn.textContent = 'Detecting…';
+  btn.disabled = true; btn.textContent = 'Loading AI…';
   item.status = 'processing'; renderRemoveQueue();
   await yieldFrame();
 
@@ -852,7 +883,7 @@ async function runAutoRemoveCurrent() {
       sourceCtx.restore();
     }
 
-    btn.textContent='Removing…'; await yieldFrame();
+    btn.textContent='Running AI…'; await yieldFrame();
     item.resultData = await inpaintWithMask(item.origData, maskMat, W, H);
     item.status = 'done';
 
