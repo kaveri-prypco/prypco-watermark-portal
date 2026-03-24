@@ -16,17 +16,17 @@ html,body{height:100%;overflow:hidden;font-family:'Barlow',system-ui,sans-serif;
 #cv-loader{position:fixed;inset:0;background:#111;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:20px}
 #cv-loader .spinner{width:44px;height:44px;border:3px solid rgba(255,255,255,.15);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
 #cv-loader p{color:rgba(255,255,255,.6);font-size:14px;font-weight:500}
-.loader-logo{display:flex;align-items:center;font-family:'Barlow',sans-serif;font-weight:800;font-size:32px;color:#fff;letter-spacing:3px}
-.loader-logo-sq{width:22px;height:27px;background:#fff;border-radius:0;margin-left:2px;flex-shrink:0}
+.loader-logo{font-family:'Barlow',sans-serif;font-weight:800;font-size:32px;color:#fff;letter-spacing:3px;display:flex;align-items:center}
+.loader-logo-sq{display:inline-block;width:22px;height:27px;background:#fff;border-radius:0;margin-left:0;vertical-align:middle;position:relative;top:-1px}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ── App shell ── */
 #app{display:none;flex-direction:column;height:100vh;overflow:hidden}
 
 /* ── Header ── */
-header{flex:0 0 54px;background:#111;display:flex;align-items:center;padding:0 20px;gap:20px;border-bottom:1px solid #2a2a2a}
-.logo{display:flex;align-items:center;font-family:'Barlow',sans-serif;font-weight:800;font-size:20px;color:#fff;letter-spacing:2px;white-space:nowrap;flex-shrink:0}
-.logo-sq{width:14px;height:17px;background:#fff;border-radius:0;margin-left:1px;flex-shrink:0;display:inline-block}
+header{flex:0 0 54px;background:#111;display:flex;align-items:center;padding:0 20px;gap:20px;border-bottom:1px solid #222}
+.logo{font-family:'Barlow',sans-serif;font-weight:800;font-size:20px;color:#fff;letter-spacing:2px;white-space:nowrap;flex-shrink:0;display:flex;align-items:center}
+.logo-sq{display:inline-block;width:14px;height:16px;background:#fff;border-radius:0;vertical-align:middle;position:relative;top:-1px}
 .tab-bar{display:flex;gap:2px;margin-left:16px}
 .tab-btn{background:transparent;border:none;border-bottom:3px solid transparent;color:rgba(255,255,255,.45);padding:6px 16px;cursor:pointer;font-size:13px;font-weight:600;font-family:'Barlow',inherit;transition:all .15s;white-space:nowrap;height:54px;margin-bottom:-1px}
 .tab-btn:hover{color:rgba(255,255,255,.8)}
@@ -39,27 +39,27 @@ header{flex:0 0 54px;background:#111;display:flex;align-items:center;padding:0 2
 .tab-panel.active{display:flex}
 
 /* ── 3-column layout ── */
-.sidebar{width:220px;min-width:180px;background:#fff;border-right:1px solid #E5E5E5;display:flex;flex-direction:column;overflow:hidden}
+.sidebar{width:210px;min-width:180px;background:#fff;border-right:1px solid #E5E5E5;display:flex;flex-direction:column;overflow:hidden}
 .canvas-area{flex:1;background:#E8E8E8;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
-.controls-panel{width:272px;min-width:240px;background:#fff;border-left:1px solid #E5E5E5;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden}
+.controls-panel{width:268px;min-width:240px;background:#fff;border-left:1px solid #E5E5E5;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden}
 
 /* ── Sidebar ── */
-.upload-zone{margin:12px;border:2px dashed #D1D5DB;border-radius:10px;padding:16px 10px;text-align:center;cursor:pointer;transition:all .15s;flex-shrink:0}
+.upload-zone{margin:12px;border:2px dashed #D1D5DB;border-radius:10px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .15s;flex-shrink:0}
 .upload-zone:hover,.upload-zone.drag-over{border-color:#111;background:#F5F5F5}
-.upload-zone .uz-icon{font-size:22px;margin-bottom:6px}
-.upload-zone p{color:#6B7280;font-size:12px;line-height:1.5}
+.upload-zone .uz-icon{font-size:20px;margin-bottom:5px}
+.upload-zone p{color:#6B7280;font-size:11px;line-height:1.5}
 .upload-zone strong{color:#111;font-weight:700}
-.sidebar-label{padding:8px 12px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9CA3AF}
+.sidebar-label{padding:6px 12px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9CA3AF}
 .queue-list{flex:1;overflow-y:auto;padding:0 8px 8px}
 .queue-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;cursor:pointer;transition:background .1s;margin-bottom:2px;border-left:3px solid transparent}
 .queue-item:hover{background:#F5F5F5}
 .queue-item.active{background:#F5F5F5;border-left-color:#111}
-.qi-thumb{width:36px;height:36px;border-radius:5px;object-fit:cover;flex-shrink:0;background:#E5E5E5}
+.qi-thumb{width:34px;height:34px;border-radius:5px;object-fit:cover;flex-shrink:0;background:#E5E5E5}
 .qi-info{flex:1;min-width:0}
-.qi-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#111}
+.qi-name{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#111}
 .qi-status{display:inline-flex;align-items:center;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
 .qi-status.pending{background:#F3F4F6;color:#6B7280}
-.qi-status.editing{background:#FEF3C7;color:#92400E}
+.qi-status.ready{background:#F3F4F6;color:#6B7280}
 .qi-status.processing{background:#FEF3C7;color:#B45309;animation:badge-pulse 1s ease-in-out infinite}
 .qi-status.done{background:#D1FAE5;color:#065F46}
 .qi-status.error{background:#FEE2E2;color:#991B1B}
@@ -72,10 +72,10 @@ header{flex:0 0 54px;background:#111;display:flex;align-items:center;padding:0 2
 #source-canvas,#mask-canvas{display:block;max-width:100%;max-height:calc(100vh - 120px)}
 #mask-canvas{position:absolute;top:0;left:0;width:100%;height:100%;cursor:none}
 .brush-cursor{position:fixed;pointer-events:none;border:2px solid rgba(255,60,60,.9);border-radius:50%;transform:translate(-50%,-50%);z-index:100;display:none}
-.empty-canvas{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#9CA3AF;text-align:center;padding:40px}
-.empty-canvas .ec-icon{font-size:44px;opacity:.35}
+.empty-canvas{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#9CA3AF;text-align:center;padding:40px}
+.empty-canvas .ec-icon{font-size:40px;opacity:.3}
 .empty-canvas h3{font-size:15px;font-weight:700;color:#6B7280}
-.empty-canvas p{font-size:12px;color:#9CA3AF;line-height:1.6;max-width:260px}
+.empty-canvas p{font-size:12px;color:#9CA3AF;line-height:1.6;max-width:240px}
 .empty-steps{list-style:none;text-align:left;display:flex;flex-direction:column;gap:8px;margin-top:4px}
 .empty-steps li{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:#9CA3AF}
 .step-num{width:20px;height:20px;border-radius:50%;background:#E5E5E5;color:#6B7280;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
@@ -111,16 +111,10 @@ input[type=text]:focus{border-color:#111;box-shadow:0 0 0 3px rgba(0,0,0,.07)}
 .btn-primary:disabled{background:#9CA3AF;cursor:not-allowed}
 .btn-secondary{background:#F3F4F6;color:#374151;width:100%}
 .btn-secondary:hover{background:#E5E7EB}
+.btn-secondary:disabled{opacity:.5;cursor:not-allowed}
 .btn-sm{padding:5px 10px;font-size:11px}
-
-/* ── Mode tabs ── */
-.mode-tabs{display:flex;border:1.5px solid #E5E5E5;border-radius:8px;overflow:hidden;margin-bottom:8px}
-.mode-tab-btn{flex:1;padding:7px 4px;background:#fff;border:none;font-size:11px;font-weight:700;cursor:pointer;font-family:'Barlow',inherit;color:#9CA3AF;transition:all .15s;text-transform:uppercase;letter-spacing:.05em}
-.mode-tab-btn:hover{color:#111;background:#F5F5F5}
-.mode-tab-btn.active{background:#111;color:#fff}
-.mode-desc{font-size:11px;color:#9CA3AF;line-height:1.5;font-weight:500}
-.info-box{background:#F5F5F5;border-radius:7px;padding:10px 12px;font-size:11px;color:#6B7280;line-height:1.6;font-weight:500;margin-bottom:10px}
-.template-status{font-size:11px;font-weight:700;color:#111;padding:8px 10px;background:#F5F5F5;border-radius:6px;margin-bottom:8px}
+.btn-outline{background:transparent;color:#111;width:100%;border:1.5px solid #E5E5E5}
+.btn-outline:hover{background:#F5F5F5;border-color:#111}
 
 /* ── Brush mode toggle ── */
 .brush-mode{display:flex;border:1.5px solid #E5E5E5;border-radius:7px;overflow:hidden;margin-bottom:10px}
@@ -130,7 +124,7 @@ input[type=text]:focus{border-color:#111;box-shadow:0 0 0 3px rgba(0,0,0,.07)}
 
 /* ── Before/After toggle ── */
 .ba-toggle{display:flex;border:1.5px solid #E5E5E5;border-radius:8px;overflow:hidden;margin-bottom:10px}
-.ba-btn{flex:1;padding:6px;background:#fff;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:'Barlow',inherit;color:#9CA3AF;transition:all .15s;letter-spacing:.3px}
+.ba-btn{flex:1;padding:7px;background:#fff;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:'Barlow',inherit;color:#9CA3AF;transition:all .15s;letter-spacing:.3px}
 .ba-btn.active{background:#111;color:#fff}
 
 /* ── Position grid ── */
@@ -140,10 +134,13 @@ input[type=text]:focus{border-color:#111;box-shadow:0 0 0 3px rgba(0,0,0,.07)}
 .pos-btn.active{background:#111;border-color:#111;color:#fff}
 
 /* ── Progress ── */
-.progress-wrap{margin-top:10px}
-.progress-bar{height:3px;background:#E5E5E5;border-radius:2px;overflow:hidden}
+.progress-wrap{margin-top:8px}
+.progress-bar{height:4px;background:#E5E5E5;border-radius:2px;overflow:hidden}
 .progress-fill{height:100%;background:#111;border-radius:2px;transition:width .3s;width:0%}
 .progress-label{font-size:11px;color:#6B7280;margin-top:5px;font-weight:600}
+
+/* ── Hint text ── */
+.hint{font-size:11px;color:#9CA3AF;line-height:1.5;font-weight:500;margin-top:8px}
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar{width:4px;height:4px}
@@ -164,13 +161,16 @@ input[type=text]:focus{border-color:#111;box-shadow:0 0 0 3px rgba(0,0,0,.07)}
 /* ── Select ── */
 select{width:100%;padding:7px 10px;border:1.5px solid #E5E5E5;border-radius:7px;font-size:13px;font-family:'Barlow',inherit;color:#111;background:#fff;outline:none;cursor:pointer;font-weight:500}
 select:focus{border-color:#111;box-shadow:0 0 0 3px rgba(0,0,0,.07)}
+
+/* ── Divider ── */
+.cp-divider{height:1px;background:#F0F0F0;margin:0}
 </style>
 </head>
 <body>
 
 <!-- Loading overlay -->
 <div id="cv-loader">
-  <div class="loader-logo">PRYPC<div class="loader-logo-sq"></div></div>
+  <div class="loader-logo">PRYPC<span class="loader-logo-sq"></span></div>
   <div class="spinner"></div>
   <p id="cv-loader-msg">Loading image engine…</p>
 </div>
@@ -178,7 +178,7 @@ select:focus{border-color:#111;box-shadow:0 0 0 3px rgba(0,0,0,.07)}
 <!-- App shell -->
 <div id="app">
   <header>
-    <div class="logo">PRYPC<div class="logo-sq"></div></div>
+    <div class="logo">PRYPC<span class="logo-sq"></span></div>
     <div class="tab-bar">
       <button class="tab-btn active" data-tab="remove">Remove Watermark</button>
       <button class="tab-btn" data-tab="add">Add Prypco Watermark</button>
@@ -193,10 +193,10 @@ select:focus{border-color:#111;box-shadow:0 0 0 3px rgba(0,0,0,.07)}
     <div class="sidebar">
       <div class="upload-zone" id="remove-upload-zone">
         <div class="uz-icon">🖼</div>
-        <p><strong>Click or drag</strong> images here<br>JPG · PNG · WebP · Bulk OK</p>
+        <p><strong>Click or drag</strong> images here<br>JPG · PNG · WebP · Max 10</p>
         <input type="file" id="remove-file-input" accept="image/jpeg,image/png,image/webp" multiple style="display:none">
       </div>
-      <div class="sidebar-label">Queue (<span id="remove-queue-count">0</span>)</div>
+      <div class="sidebar-label">Queue (<span id="remove-queue-count">0</span> / 10)</div>
       <div class="queue-list" id="remove-queue-list"></div>
     </div>
 
@@ -205,9 +205,9 @@ select:focus{border-color:#111;box-shadow:0 0 0 3px rgba(0,0,0,.07)}
         <div class="ec-icon">✦</div>
         <h3>Remove Watermarks</h3>
         <ul class="empty-steps">
-          <li><div class="step-num">1</div>Upload images from the left panel</li>
-          <li><div class="step-num">2</div>Choose a mode: Auto detects automatically</li>
-          <li><div class="step-num">3</div>Click Auto-Remove All — done</li>
+          <li><div class="step-num">1</div>Upload images (left panel)</li>
+          <li><div class="step-num">2</div>Click "Remove Watermark"</li>
+          <li><div class="step-num">3</div>Preview result, then download</li>
         </ul>
       </div>
       <div class="canvas-wrap" id="remove-canvas-wrap" style="display:none">
@@ -219,41 +219,26 @@ select:focus{border-color:#111;box-shadow:0 0 0 3px rgba(0,0,0,.07)}
     <div class="controls-panel">
       <div class="cp-header">Remove Watermark</div>
 
-      <!-- Mode switcher -->
+      <!-- Primary action -->
       <div class="cp-section">
-        <div class="cp-title">Detection Mode</div>
-        <div class="mode-tabs">
-          <button class="mode-tab-btn active" data-mode="auto">Auto</button>
-          <button class="mode-tab-btn" data-mode="template">Template</button>
-          <button class="mode-tab-btn" data-mode="manual">Manual</button>
-        </div>
-        <p class="mode-desc" id="mode-description">Detect & remove watermarks automatically. No drawing needed.</p>
+        <button class="btn btn-primary" id="auto-remove-btn" disabled>▶ Remove Watermark</button>
+        <p class="hint">Auto-detects and removes the watermark. Best on walls, sky, and uniform backgrounds.</p>
       </div>
 
-      <!-- Auto panel -->
-      <div class="cp-section" id="mode-panel-auto">
-        <div class="info-box">Scans the full image for watermark-like shapes. Works best for text/logo watermarks on walls, skies, and uniform backgrounds.</div>
-        <button class="btn btn-primary" id="auto-remove-btn" disabled>Auto-Remove All &amp; Download</button>
-        <div class="progress-wrap" id="auto-progress-wrap" style="display:none">
-          <div class="progress-bar"><div class="progress-fill" id="auto-progress-fill"></div></div>
-          <div class="progress-label" id="auto-progress-label">0 / 0</div>
+      <!-- Result preview (shown after processing) -->
+      <div class="cp-section" id="result-section" style="display:none">
+        <div class="cp-title">Result</div>
+        <div class="ba-toggle">
+          <button class="ba-btn active" id="ba-before-btn">Before</button>
+          <button class="ba-btn" id="ba-after-btn">After</button>
         </div>
+        <button class="btn btn-primary" id="remove-download-btn" style="margin-bottom:8px">↓ Download</button>
+        <button class="btn btn-outline" id="toggle-manual-btn">✏ Edit Manually</button>
       </div>
 
-      <!-- Template panel -->
-      <div class="cp-section" id="mode-panel-template" style="display:none">
-        <div class="info-box">Paint the watermark on one image, save it as a template, then apply that same region to every image in the queue.</div>
-        <div class="template-status" id="template-status">No template saved yet</div>
-        <button class="btn btn-secondary btn-sm" id="save-template-btn" style="margin-bottom:8px">Save Current Mask as Template</button>
-        <button class="btn btn-primary" id="template-remove-btn" disabled>Apply Template + Remove All</button>
-        <div class="progress-wrap" id="tmpl-progress-wrap" style="display:none">
-          <div class="progress-bar"><div class="progress-fill" id="tmpl-progress-fill"></div></div>
-          <div class="progress-label" id="tmpl-progress-label">0 / 0</div>
-        </div>
-      </div>
-
-      <!-- Manual panel -->
-      <div class="cp-section" id="mode-panel-manual" style="display:none">
+      <!-- Manual brush (expandable) -->
+      <div class="cp-section" id="manual-section" style="display:none">
+        <div class="cp-title">Manual Brush</div>
         <div class="brush-mode">
           <button class="bm-btn active" id="brush-paint-btn">✏ Paint</button>
           <button class="bm-btn" id="brush-erase-btn">⌫ Erase</button>
@@ -262,36 +247,20 @@ select:focus{border-color:#111;box-shadow:0 0 0 3px rgba(0,0,0,.07)}
           <span class="ctrl-label">Brush Size</span>
           <span class="ctrl-val" id="brush-size-val">24px</span>
         </div>
-        <input type="range" id="brush-size" min="4" max="120" value="24" style="margin-bottom:12px">
-        <button class="btn btn-primary" id="inpaint-btn" disabled style="margin-bottom:8px">Remove Watermark</button>
-        <button class="btn btn-secondary" id="remove-download-btn" disabled>Download Result</button>
-      </div>
-
-      <!-- Quality (always) -->
-      <div class="cp-section">
-        <div class="cp-title">Quality</div>
-        <div class="ctrl-row">
-          <span class="ctrl-label">Inpaint Radius</span>
-          <span class="ctrl-val" id="inpaint-radius-val">3</span>
-        </div>
-        <input type="range" id="inpaint-radius" min="1" max="15" value="3" style="margin-bottom:10px">
-        <div class="toggle-row">
-          <span class="toggle-label">Auto-advance queue</span>
-          <label class="toggle-switch">
-            <input type="checkbox" id="auto-advance">
-            <div class="toggle-track"></div>
-          </label>
-        </div>
-      </div>
-
-      <!-- Preview (always) -->
-      <div class="cp-section">
-        <div class="cp-title">Preview</div>
-        <div class="ba-toggle">
-          <button class="ba-btn active" id="ba-before-btn">Before</button>
-          <button class="ba-btn" id="ba-after-btn">After</button>
-        </div>
+        <input type="range" id="brush-size" min="4" max="120" value="24" style="margin-bottom:10px">
+        <button class="btn btn-primary" id="inpaint-btn" style="margin-bottom:6px">Apply Removal</button>
         <button class="btn btn-secondary btn-sm" id="clear-mask-btn" style="width:100%">Clear Mask</button>
+      </div>
+
+      <!-- Bulk actions (shown when >1 images) -->
+      <div class="cp-section" id="bulk-section" style="display:none">
+        <div class="cp-title">Bulk</div>
+        <button class="btn btn-primary" id="process-all-btn" style="margin-bottom:8px">⚡ Process All</button>
+        <div class="progress-wrap" id="bulk-progress-wrap" style="display:none">
+          <div class="progress-bar"><div class="progress-fill" id="bulk-progress-fill"></div></div>
+          <div class="progress-label" id="bulk-progress-label"></div>
+        </div>
+        <button class="btn btn-secondary" id="download-all-btn" style="display:none;margin-top:8px">↓ Download All Done</button>
       </div>
 
     </div>
@@ -401,7 +370,6 @@ select:focus{border-color:#111;box-shadow:0 0 0 3px rgba(0,0,0,.07)}
      JAVASCRIPT
 ═══════════════════════════════════════════ -->
 <script>
-// Must be defined BEFORE opencv.js loads
 window.Module = {
   onRuntimeInitialized: function() {
     document.getElementById('cv-loader-msg').textContent = 'Ready!';
@@ -426,11 +394,9 @@ function cvLoadError() {
 var State = {
   removeQueue:  [],
   removeActive: -1,
-  removeMode:   'auto',       // 'auto' | 'template' | 'manual'
-  templateMask: null,         // {normX, normY, normW, normH}
+  manualOpen:   false,
   brushMode:    'paint',
   brushSize:    24,
-  inpaintRadius: 3,
   viewMode:     'before',
   isDrawing:    false,
   lastX: 0, lastY: 0,
@@ -443,6 +409,8 @@ var State = {
     tiled: false, outputFormat: 'same',
   },
 };
+
+var MAX_QUEUE = 10;
 
 // ══════════════════════════════════════════════
 // SECTION 2 — SHARED UTILITIES
@@ -496,16 +464,9 @@ function outputMime(item) {
   var f = State.wm.outputFormat;
   return f === 'same' ? (item.file.type || 'image/png') : f;
 }
-
-function extForMime(mime) {
-  return ({  'image/jpeg':'jpg','image/png':'png','image/webp':'webp' })[mime] || 'png';
-}
-
+function extForMime(mime) { return ({'image/jpeg':'jpg','image/png':'png','image/webp':'webp'})[mime] || 'png'; }
 function stripExt(name) { return name.replace(/\.[^.]+$/, ''); }
-
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function toast(msg, type) {
   type = type || 'info';
@@ -515,7 +476,7 @@ function toast(msg, type) {
   el.textContent = msg;
   wrap.appendChild(el);
   requestAnimationFrame(function(){ requestAnimationFrame(function(){ el.classList.add('show'); }); });
-  setTimeout(function(){ el.classList.remove('show'); setTimeout(function(){ el.remove(); }, 300); }, 3500);
+  setTimeout(function(){ el.classList.remove('show'); setTimeout(function(){ el.remove(); }, 300); }, 4000);
 }
 
 function yieldFrame() { return new Promise(function(r){ setTimeout(r, 20); }); }
@@ -524,9 +485,9 @@ function yieldFrame() { return new Promise(function(r){ setTimeout(r, 20); }); }
 // SECTION 3 — INPAINTING ENGINE
 // ══════════════════════════════════════════════
 
-// Smart inpaint: scanline-interpolation for simple backgrounds (no blur!), OpenCV NS fallback
+// Smart fill: scanline interpolation for simple backgrounds, OpenCV NS for complex ones
 async function inpaintWithMask(origData, maskMat, w, h) {
-  var maskData = maskMat.data; // Uint8Array, 255=masked
+  var maskData = maskMat.data;
 
   // Find mask bounding rect
   var x1=w, y1=h, x2=0, y2=0;
@@ -538,26 +499,26 @@ async function inpaintWithMask(origData, maskMat, w, h) {
   if (x2 < x1) return origData;
   x2++; y2++;
 
-  // Sample a 28px border ring just outside the bounding rect
-  var band=28, pixels=origData.data, r=0,g=0,b=0,n=0, vr=0,vg=0,vb=0;
-  var samples = [];
-  function smpXY(sx,sy){ if(sx<0||sx>=w||sy<0||sy>=h)return; var i=(sy*w+sx)*4; samples.push(pixels[i],pixels[i+1],pixels[i+2]); r+=pixels[i];g+=pixels[i+1];b+=pixels[i+2];n++; }
-  for(var y=Math.max(0,y1-band);y<Math.min(h,y1);y++) for(var x=x1;x<x2;x+=2)smpXY(x,y);
-  for(var y=Math.max(0,y2);y<Math.min(h,y2+band);y++) for(var x=x1;x<x2;x+=2)smpXY(x,y);
-  for(var x=Math.max(0,x1-band);x<Math.min(w,x1);x++) for(var y=y1;y<y2;y+=2)smpXY(x,y);
-  for(var x=Math.max(0,x2);x<Math.min(w,x2+band);x++) for(var y=y1;y<y2;y+=2)smpXY(x,y);
+  // Sample 28px border ring outside bounding rect to estimate background complexity
+  var band=28, pixels=origData.data, r=0,g=0,b=0,n=0;
+  var samples=[];
+  function smp(sx,sy){ if(sx<0||sx>=w||sy<0||sy>=h)return; var i=(sy*w+sx)*4; samples.push(pixels[i],pixels[i+1],pixels[i+2]); r+=pixels[i];g+=pixels[i+1];b+=pixels[i+2];n++; }
+  for(var y=Math.max(0,y1-band);y<Math.min(h,y1);y++) for(var x=x1;x<x2;x+=2)smp(x,y);
+  for(var y=Math.max(0,y2);y<Math.min(h,y2+band);y++) for(var x=x1;x<x2;x+=2)smp(x,y);
+  for(var x=Math.max(0,x1-band);x<Math.min(w,x1);x++) for(var y=y1;y<y2;y+=2)smp(x,y);
+  for(var x=Math.max(0,x2);x<Math.min(w,x2+band);x++) for(var y=y1;y<y2;y+=2)smp(x,y);
 
   var stdDev = 99;
   if (n > 0) {
-    var mr=r/n, mg=g/n, mb=b/n;
+    var mr=r/n, mg=g/n, mb=b/n, vr=0,vg=0,vb=0;
     for(var i=0;i<samples.length;i+=3){vr+=(samples[i]-mr)*(samples[i]-mr);vg+=(samples[i+1]-mg)*(samples[i+1]-mg);vb+=(samples[i+2]-mb)*(samples[i+2]-mb);}
     stdDev = Math.sqrt((vr+vg+vb)/(3*n));
   }
 
-  // Simple/gradient background → scanline interpolation fill (no blur, perfect for walls/sky)
+  // Simple/gradient background → scanline fill (zero blur, perfect for walls/sky)
   if (stdDev < 42) return gradientFill(origData, maskData, w, h, x1, y1, x2, y2);
 
-  // Complex background → OpenCV Navier-Stokes inpainting
+  // Complex background → OpenCV Navier-Stokes
   var srcMat=null, srcBGR=null, dstMat=null, dstRGBA=null;
   try {
     srcMat = cv.matFromImageData(origData);
@@ -571,23 +532,18 @@ async function inpaintWithMask(origData, maskMat, w, h) {
   }
 }
 
-// Scanline-interpolation fill: each masked pixel gets inverse-distance-weighted blend from
-// nearest real pixels in 4 directions. Zero blur, perfect for uniform/gradient backgrounds.
+// Scanline fill: for each masked pixel, inverse-distance blend from nearest real pixel in 4 directions
 function gradientFill(origData, maskData, w, h, mx1, my1, mx2, my2) {
   var src = origData.data;
   var result = new Uint8ClampedArray(src);
-  var mw = mx2-mx1, mh = my2-my1, n = mw*mh;
-  var INF = 99999;
+  var mw=mx2-mx1, mh=my2-my1, n=mw*mh, INF=99999;
 
-  // 4 compact arrays: one per direction, each stores packed RGB (lower 24 bits) + distance (upper bits kept separate)
   var lC=new Uint32Array(n), lD=new Uint32Array(n).fill(INF);
   var rC=new Uint32Array(n), rD=new Uint32Array(n).fill(INF);
   var tC=new Uint32Array(n), tD=new Uint32Array(n).fill(INF);
   var bC=new Uint32Array(n), bD=new Uint32Array(n).fill(INF);
-
   function pack(i){ return (src[i]<<16)|(src[i+1]<<8)|src[i+2]; }
 
-  // Left pass: scan full row left→right, store in mask rect
   for(var y=my1;y<my2;y++){
     var cc=0,cd=INF;
     for(var x=0;x<mx2;x++){
@@ -596,7 +552,6 @@ function gradientFill(origData, maskData, w, h, mx1, my1, mx2, my2) {
       if(x>=mx1){var mi=(y-my1)*mw+(x-mx1);lC[mi]=cc;lD[mi]=cd;}
     }
   }
-  // Right pass: scan full row right→left
   for(var y=my1;y<my2;y++){
     var cc=0,cd=INF;
     for(var x=w-1;x>=mx1;x--){
@@ -605,7 +560,6 @@ function gradientFill(origData, maskData, w, h, mx1, my1, mx2, my2) {
       if(x<mx2){var mi=(y-my1)*mw+(x-mx1);rC[mi]=cc;rD[mi]=cd;}
     }
   }
-  // Top pass: scan full column top→bottom
   for(var x=mx1;x<mx2;x++){
     var cc=0,cd=INF;
     for(var y=0;y<my2;y++){
@@ -614,7 +568,6 @@ function gradientFill(origData, maskData, w, h, mx1, my1, mx2, my2) {
       if(y>=my1){var mi=(y-my1)*mw+(x-mx1);tC[mi]=cc;tD[mi]=cd;}
     }
   }
-  // Bottom pass: scan full column bottom→top
   for(var x=mx1;x<mx2;x++){
     var cc=0,cd=INF;
     for(var y=h-1;y>=my1;y--){
@@ -624,11 +577,9 @@ function gradientFill(origData, maskData, w, h, mx1, my1, mx2, my2) {
     }
   }
 
-  // Blend 4 directions with inverse-distance weighting
   for(var y=my1;y<my2;y++){
     for(var x=mx1;x<mx2;x++){
-      var ii=y*w+x;
-      if(maskData[ii]<128) continue;
+      var ii=y*w+x; if(maskData[ii]<128) continue;
       var mi=(y-my1)*mw+(x-mx1);
       var wL=1/(lD[mi]+1),wR=1/(rD[mi]+1),wT=1/(tD[mi]+1),wB=1/(bD[mi]+1);
       var ws=wL+wR+wT+wB; if(!ws)continue;
@@ -638,47 +589,47 @@ function gradientFill(origData, maskData, w, h, mx1, my1, mx2, my2) {
       var pi=ii*4; result[pi]=fr+.5|0; result[pi+1]=fg+.5|0; result[pi+2]=fb+.5|0;
     }
   }
-
-  lC=lD=rC=rD=tC=tD=bC=bD=null; // free
+  lC=lD=rC=rD=tC=tD=bC=bD=null;
   return new ImageData(result, w, h);
 }
 
-// Auto-detect watermark using edge analysis in candidate zones
+// ══════════════════════════════════════════════
+// SECTION 4 — WATERMARK DETECTION
+// Combines color-anomaly detection (catches semi-transparent watermarks)
+// with Canny edges (catches high-contrast logos) for maximum coverage.
+// ══════════════════════════════════════════════
 function autoDetectWatermarkMask(srcMat, w, h) {
-  var gray=null, blurred=null, edges=null, zoneMask=null;
-  var dilKernel=null, dilated=null, contours=null, hierarchy=null, outputMask=null;
+  var gray=null, blurSm=null, blurBig=null, anomaly=null, edges=null;
+  var combined=null, dilKernel=null, dilated=null, contours=null, hierarchy=null, outputMask=null;
   try {
     gray = new cv.Mat();
     cv.cvtColor(srcMat, gray, cv.COLOR_RGBA2GRAY);
 
-    // Scoring zones: corners + bottom + CENTER (watermarks can be anywhere, incl. middle)
-    zoneMask = cv.Mat.zeros(h, w, cv.CV_8UC1);
-    var zones = [
-      [0,               0,               Math.round(w*.42), Math.round(h*.32)], // TL
-      [Math.round(w*.58), 0,             Math.round(w*.42), Math.round(h*.32)], // TR
-      [0,               Math.round(h*.68), Math.round(w*.42), Math.round(h*.32)], // BL
-      [Math.round(w*.58), Math.round(h*.68), Math.round(w*.42), Math.round(h*.32)], // BR
-      [Math.round(w*.12), Math.round(h*.62), Math.round(w*.76), Math.round(h*.38)], // BC wide
-      [Math.round(w*.05), Math.round(h*.18), Math.round(w*.90), Math.round(h*.64)], // CENTER band
-    ];
-    // Zone weights for scoring (center is valid but scored lower than corners)
-    var zoneWeights = [1.0, 1.0, 1.0, 1.0, 0.8, 0.6];
-    zones.forEach(function(z) {
-      var x2 = Math.min(w, z[0]+z[2]), y2 = Math.min(h, z[1]+z[3]);
-      cv.rectangle(zoneMask, new cv.Point(z[0], z[1]), new cv.Point(x2, y2), new cv.Scalar(255), -1);
-    });
+    // ── Method 1: Color anomaly (compare pixel to local background) ──
+    // A watermark adds color/brightness that differs from the surrounding background.
+    // Heavy blur gives us the "background without the watermark".
+    // absdiff finds pixels that don't match their surroundings → watermark pixels.
+    blurBig = new cv.Mat();
+    var ks = Math.max(41, Math.floor(Math.min(w,h) * 0.045)); if(ks%2===0)ks++;
+    cv.GaussianBlur(gray, blurBig, new cv.Size(ks, ks), 0);
+    anomaly = new cv.Mat();
+    cv.absdiff(gray, blurBig, anomaly);
+    cv.threshold(anomaly, anomaly, 10, 255, cv.THRESH_BINARY);
 
-    blurred = new cv.Mat();
-    cv.GaussianBlur(gray, blurred, new cv.Size(3, 3), 0);
+    // ── Method 2: Canny edges (catches hard-edged logos) ──
+    blurSm = new cv.Mat();
+    cv.GaussianBlur(gray, blurSm, new cv.Size(3,3), 0);
     edges = new cv.Mat();
-    cv.Canny(blurred, edges, 22, 80); // Lower thresholds catch semi-transparent watermarks
+    cv.Canny(blurSm, edges, 20, 70);
 
-    // No zone restriction — scan full image so center watermarks are detected
+    // Combine both methods
+    combined = new cv.Mat();
+    cv.bitwise_or(edges, anomaly, combined);
 
-    // Dilate to merge text strokes and logo pieces into one blob
-    dilKernel = cv.Mat.ones(22, 22, cv.CV_8UC1);
+    // Dilate to merge nearby marks into solid blobs
+    dilKernel = cv.Mat.ones(24, 24, cv.CV_8UC1);
     dilated = new cv.Mat();
-    cv.dilate(edges, dilated, dilKernel);
+    cv.dilate(combined, dilated, dilKernel);
 
     contours  = new cv.MatVector();
     hierarchy = new cv.Mat();
@@ -687,65 +638,60 @@ function autoDetectWatermarkMask(srcMat, w, h) {
     var imgArea = w * h;
     var bestScore = -1, bestRect = null;
 
+    // Scoring zones: corner/edge placement gets bonus; center is valid too
+    var zones = [
+      [0,         0,         w*.42, h*.32],  // TL
+      [w*.58,     0,         w*.42, h*.32],  // TR
+      [0,         h*.68,     w*.42, h*.32],  // BL
+      [w*.58,     h*.68,     w*.42, h*.32],  // BR
+      [w*.12,     h*.62,     w*.76, h*.38],  // BC wide
+      [w*.05,     h*.18,     w*.90, h*.64],  // CENTER band
+    ];
+    var zw = [1.0, 1.0, 1.0, 1.0, 0.8, 0.6];
+
     for (var i = 0; i < contours.size(); i++) {
       var rect = cv.boundingRect(contours.get(i));
       var area = rect.width * rect.height;
-      if (area < imgArea * 0.001 || area > imgArea * 0.55) continue;
+      if (area < imgArea * 0.001 || area > imgArea * 0.65) continue;
 
-      // Zone overlap score (weighted: corner zones preferred over center)
-      var zoneOverlap = 0;
+      var zoneScore = 0;
       zones.forEach(function(z, zi) {
-        var ix  = Math.max(rect.x, z[0]), iy  = Math.max(rect.y, z[1]);
-        var ix2 = Math.min(rect.x + rect.width,  z[0]+z[2]);
-        var iy2 = Math.min(rect.y + rect.height, z[1]+z[3]);
-        if (ix2 > ix && iy2 > iy) {
-          var overlap = ((ix2-ix)*(iy2-iy) / area) * zoneWeights[zi];
-          zoneOverlap = Math.max(zoneOverlap, overlap);
-        }
+        var ix=Math.max(rect.x,z[0]), iy=Math.max(rect.y,z[1]);
+        var ix2=Math.min(rect.x+rect.width,z[0]+z[2]);
+        var iy2=Math.min(rect.y+rect.height,z[1]+z[3]);
+        if(ix2>ix && iy2>iy) zoneScore=Math.max(zoneScore, ((ix2-ix)*(iy2-iy)/area)*zw[zi]);
       });
 
-      // Aspect ratio (watermarks tend to be wide horizontal bands)
-      var aspect = Math.min(rect.width / Math.max(rect.height, 1), 12) / 12;
-      // Size fit: penalise very tiny and very huge contours
+      var aspect  = Math.min(rect.width / Math.max(rect.height,1), 12) / 12;
       var relArea = area / imgArea;
-      var sizeFit = (relArea > 0.005 && relArea < 0.50) ? 1.0 : 0.3;
-      var score = aspect * 0.45 + zoneOverlap * 0.40 + sizeFit * 0.15;
+      var sizeFit = (relArea > 0.002 && relArea < 0.65) ? 1.0 : 0.2;
+      var score   = aspect * 0.40 + zoneScore * 0.40 + sizeFit * 0.20;
 
       if (score > bestScore) { bestScore = score; bestRect = rect; }
     }
 
-    if (!bestRect || bestScore < 0.12) return null;
+    if (!bestRect || bestScore < 0.08) return null;
 
-    // Expand bounding box by 12% for safety
-    var ex = Math.round(bestRect.width  * 0.12);
-    var ey = Math.round(bestRect.height * 0.12);
-    var x1 = Math.max(0, bestRect.x - ex);
-    var y1 = Math.max(0, bestRect.y - ey);
-    var x2 = Math.min(w, bestRect.x + bestRect.width  + ex);
-    var y2 = Math.min(h, bestRect.y + bestRect.height + ey);
+    // Expand bounding box 15% for safety
+    var ex=Math.round(bestRect.width*0.15), ey=Math.round(bestRect.height*0.15);
+    var bx1=Math.max(0,bestRect.x-ex), by1=Math.max(0,bestRect.y-ey);
+    var bx2=Math.min(w,bestRect.x+bestRect.width+ex), by2=Math.min(h,bestRect.y+bestRect.height+ey);
 
     outputMask = cv.Mat.zeros(h, w, cv.CV_8UC1);
-    cv.rectangle(outputMask, new cv.Point(x1, y1), new cv.Point(x2, y2), new cv.Scalar(255), -1);
+    cv.rectangle(outputMask, new cv.Point(bx1,by1), new cv.Point(bx2,by2), new cv.Scalar(255), -1);
     return outputMask;
 
   } catch(err) {
     console.error('autoDetect:', err);
-    if (outputMask) { outputMask.delete(); outputMask = null; }
+    if(outputMask){ outputMask.delete(); outputMask=null; }
     return null;
   } finally {
-    if (gray)      gray.delete();
-    if (blurred)   blurred.delete();
-    if (edges)     edges.delete();
-    if (zoneMask)  zoneMask.delete();
-    if (dilKernel) dilKernel.delete();
-    if (dilated)   dilated.delete();
-    if (contours)  contours.delete();
-    if (hierarchy) hierarchy.delete();
+    [gray,blurSm,blurBig,anomaly,edges,combined,dilKernel,dilated,contours,hierarchy].forEach(function(m){ if(m) m.delete(); });
   }
 }
 
 // ══════════════════════════════════════════════
-// SECTION 4 — REMOVE TAB MODULE
+// SECTION 5 — REMOVE TAB MODULE
 // ══════════════════════════════════════════════
 var sourceCanvas = document.getElementById('source-canvas');
 var maskCanvas   = document.getElementById('mask-canvas');
@@ -753,42 +699,11 @@ var sourceCtx    = sourceCanvas.getContext('2d');
 var maskCtx      = maskCanvas.getContext('2d');
 var brushCursor  = document.getElementById('brush-cursor');
 
-function setRemoveMode(mode) {
-  State.removeMode = mode;
-  document.querySelectorAll('.mode-tab-btn').forEach(function(b) {
-    b.classList.toggle('active', b.dataset.mode === mode);
-  });
-  document.getElementById('mode-panel-auto').style.display     = mode === 'auto'     ? '' : 'none';
-  document.getElementById('mode-panel-template').style.display = mode === 'template' ? '' : 'none';
-  document.getElementById('mode-panel-manual').style.display   = mode === 'manual'   ? '' : 'none';
-
-  var needBrush = mode === 'manual' || mode === 'template';
-  maskCanvas.style.pointerEvents = needBrush ? 'auto' : 'none';
-  maskCanvas.style.opacity       = needBrush ? '1' : '0';
-  brushCursor.style.display      = 'none';
-
-  var descs = {
-    auto:     'Detect & remove watermarks automatically. No drawing needed.',
-    template: 'Paint on one image, save as template, then apply to all.',
-    manual:   'Draw over the watermark by hand, then click Remove.'
-  };
-  document.getElementById('mode-description').textContent = descs[mode];
-}
-
-function updateProgress(fillId, labelId, wrapId, done, total, label) {
-  var wrap = document.getElementById(wrapId);
-  var fill = document.getElementById(fillId);
-  var lbl  = document.getElementById(labelId);
-  if (wrap) wrap.style.display = '';
-  if (fill) fill.style.width = Math.round(done / Math.max(total,1) * 100) + '%';
-  if (lbl)  lbl.textContent = label || (done + ' / ' + total);
-}
-
 function initRemoveTab() {
   var zone = document.getElementById('remove-upload-zone');
   var inp  = document.getElementById('remove-file-input');
-  zone.addEventListener('click', function() { inp.click(); });
-  inp.addEventListener('change', function() { addRemoveFiles(Array.from(inp.files)); inp.value=''; });
+  zone.addEventListener('click', function(){ inp.click(); });
+  inp.addEventListener('change', function(){ addRemoveFiles(Array.from(inp.files)); inp.value=''; });
   zone.addEventListener('dragover',  function(e){ e.preventDefault(); zone.classList.add('drag-over'); });
   zone.addEventListener('dragleave', function(){ zone.classList.remove('drag-over'); });
   zone.addEventListener('drop', function(e){
@@ -796,59 +711,37 @@ function initRemoveTab() {
     addRemoveFiles(Array.from(e.dataTransfer.files).filter(function(f){ return f.type.startsWith('image/'); }));
   });
 
-  // Mode tabs
-  document.querySelectorAll('.mode-tab-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() { setRemoveMode(btn.dataset.mode); });
+  document.getElementById('auto-remove-btn').addEventListener('click', runAutoRemoveCurrent);
+  document.getElementById('ba-before-btn').addEventListener('click', function(){
+    State.viewMode='before'; this.classList.add('active');
+    document.getElementById('ba-after-btn').classList.remove('active'); refreshSourceCanvas();
   });
+  document.getElementById('ba-after-btn').addEventListener('click', function(){
+    State.viewMode='after'; this.classList.add('active');
+    document.getElementById('ba-before-btn').classList.remove('active'); refreshSourceCanvas();
+  });
+  document.getElementById('remove-download-btn').addEventListener('click', downloadRemoveResult);
+  document.getElementById('toggle-manual-btn').addEventListener('click', function(){ setManualPanelOpen(!State.manualOpen); });
 
-  // Auto mode
-  document.getElementById('auto-remove-btn').addEventListener('click', runBulkAutoRemove);
-
-  // Template mode
-  document.getElementById('save-template-btn').addEventListener('click', saveCurrentMaskAsTemplate);
-  document.getElementById('template-remove-btn').addEventListener('click', runBulkTemplate);
-
-  // Manual mode
-  document.getElementById('brush-paint-btn').addEventListener('click', function() {
-    State.brushMode = 'paint';
-    this.classList.add('active');
+  document.getElementById('brush-paint-btn').addEventListener('click', function(){
+    State.brushMode='paint'; this.classList.add('active');
     document.getElementById('brush-erase-btn').classList.remove('active','erase');
   });
-  document.getElementById('brush-erase-btn').addEventListener('click', function() {
-    State.brushMode = 'erase';
-    this.classList.add('active','erase');
+  document.getElementById('brush-erase-btn').addEventListener('click', function(){
+    State.brushMode='erase'; this.classList.add('active','erase');
     document.getElementById('brush-paint-btn').classList.remove('active');
   });
-  document.getElementById('brush-size').addEventListener('input', function() {
-    State.brushSize = parseInt(this.value);
-    document.getElementById('brush-size-val').textContent = this.value + 'px';
+  document.getElementById('brush-size').addEventListener('input', function(){
+    State.brushSize=parseInt(this.value);
+    document.getElementById('brush-size-val').textContent=this.value+'px';
     updateBrushCursor();
   });
   document.getElementById('inpaint-btn').addEventListener('click', runManualInpaint);
-  document.getElementById('remove-download-btn').addEventListener('click', downloadRemoveResult);
-
-  // Quality
-  document.getElementById('inpaint-radius').addEventListener('input', function() {
-    State.inpaintRadius = parseInt(this.value);
-    document.getElementById('inpaint-radius-val').textContent = this.value;
-  });
-
-  // Preview
-  document.getElementById('ba-before-btn').addEventListener('click', function() {
-    State.viewMode = 'before';
-    this.classList.add('active');
-    document.getElementById('ba-after-btn').classList.remove('active');
-    refreshSourceCanvas();
-  });
-  document.getElementById('ba-after-btn').addEventListener('click', function() {
-    State.viewMode = 'after';
-    this.classList.add('active');
-    document.getElementById('ba-before-btn').classList.remove('active');
-    refreshSourceCanvas();
-  });
   document.getElementById('clear-mask-btn').addEventListener('click', clearMask);
 
-  // Brush events
+  document.getElementById('process-all-btn').addEventListener('click', processAllQueue);
+  document.getElementById('download-all-btn').addEventListener('click', downloadAllDone);
+
   maskCanvas.addEventListener('mousedown', brushStart);
   maskCanvas.addEventListener('mousemove', brushMove);
   maskCanvas.addEventListener('mouseup',   brushEnd);
@@ -856,558 +749,487 @@ function initRemoveTab() {
   maskCanvas.addEventListener('touchstart', function(e){ e.preventDefault(); brushStart(e.touches[0]); }, {passive:false});
   maskCanvas.addEventListener('touchmove',  function(e){ e.preventDefault(); brushMove(e.touches[0]); }, {passive:false});
   maskCanvas.addEventListener('touchend',   brushEnd, {passive:false});
+  document.getElementById('remove-canvas-wrap').addEventListener('mousemove', function(e){
+    if(State.manualOpen){ brushCursor.style.left=e.clientX+'px'; brushCursor.style.top=e.clientY+'px'; }
+  });
 
-  var wrap = document.getElementById('remove-canvas-wrap');
-  wrap.addEventListener('mouseenter', function(){ if (State.removeMode !== 'auto'){ brushCursor.style.display='block'; updateBrushCursor(); }});
-  wrap.addEventListener('mouseleave', function(){ brushCursor.style.display='none'; });
+  setManualPanelOpen(false);
 }
+
+function setManualPanelOpen(open) {
+  State.manualOpen = open;
+  document.getElementById('manual-section').style.display = open ? '' : 'none';
+  document.getElementById('toggle-manual-btn').textContent = open ? '✕ Close Manual Edit' : '✏ Edit Manually';
+  maskCanvas.style.pointerEvents = open ? 'auto' : 'none';
+  maskCanvas.style.opacity = open ? '1' : '0';
+  if(!open) brushCursor.style.display = 'none';
+}
+
+function setResultVisible(v) { document.getElementById('result-section').style.display = v ? '' : 'none'; }
+function setBulkVisible(v)   { document.getElementById('bulk-section').style.display   = v ? '' : 'none'; }
 
 function updateBrushCursor() {
   var sz = State.brushSize * 2;
-  brushCursor.style.width  = sz + 'px';
-  brushCursor.style.height = sz + 'px';
+  brushCursor.style.width = sz+'px'; brushCursor.style.height = sz+'px';
 }
 
 function canvasCoords(e) {
   var rect = maskCanvas.getBoundingClientRect();
-  return {
-    x: (e.clientX - rect.left) * (maskCanvas.width  / rect.width),
-    y: (e.clientY - rect.top)  * (maskCanvas.height / rect.height),
-  };
+  return { x:(e.clientX-rect.left)*(maskCanvas.width/rect.width), y:(e.clientY-rect.top)*(maskCanvas.height/rect.height) };
 }
-
-function brushStart(e) {
-  State.isDrawing = true;
-  var p = canvasCoords(e); State.lastX = p.x; State.lastY = p.y;
-  brushDraw(p.x, p.y);
-  brushCursor.style.display = 'block'; updateBrushCursor();
+function brushStart(e){ State.isDrawing=true; var p=canvasCoords(e); State.lastX=p.x; State.lastY=p.y; brushDraw(p.x,p.y); brushCursor.style.display='block'; updateBrushCursor(); }
+function brushEnd(){ State.isDrawing=false; brushCursor.style.display='none'; }
+function brushMove(e){
+  var p=canvasCoords(e);
+  brushCursor.style.left=e.clientX+'px'; brushCursor.style.top=e.clientY+'px'; brushCursor.style.display='block';
+  if(!State.isDrawing) return;
+  var dx=p.x-State.lastX, dy=p.y-State.lastY, dist=Math.sqrt(dx*dx+dy*dy);
+  var steps=Math.max(1,Math.floor(dist/(State.brushSize*0.3)));
+  for(var i=0;i<=steps;i++) brushDraw(State.lastX+dx*(i/steps), State.lastY+dy*(i/steps));
+  State.lastX=p.x; State.lastY=p.y;
 }
-function brushEnd() { State.isDrawing = false; brushCursor.style.display = 'none'; }
-function brushMove(e) {
-  var p = canvasCoords(e);
-  brushCursor.style.left = e.clientX + 'px'; brushCursor.style.top = e.clientY + 'px';
-  brushCursor.style.display = 'block';
-  if (!State.isDrawing) return;
-  var dx = p.x - State.lastX, dy = p.y - State.lastY;
-  var dist = Math.sqrt(dx*dx + dy*dy);
-  var steps = Math.max(1, Math.floor(dist / (State.brushSize * 0.3)));
-  for (var i = 0; i <= steps; i++) brushDraw(State.lastX + dx*(i/steps), State.lastY + dy*(i/steps));
-  State.lastX = p.x; State.lastY = p.y;
-}
-function brushDraw(x, y) {
-  if (State.brushMode === 'erase') {
-    maskCtx.globalCompositeOperation = 'destination-out';
-    maskCtx.beginPath(); maskCtx.arc(x, y, State.brushSize, 0, Math.PI*2);
-    maskCtx.fillStyle = 'rgba(0,0,0,1)'; maskCtx.fill();
-    maskCtx.globalCompositeOperation = 'source-over';
+function brushDraw(x,y){
+  if(State.brushMode==='erase'){
+    maskCtx.globalCompositeOperation='destination-out';
+    maskCtx.beginPath(); maskCtx.arc(x,y,State.brushSize,0,Math.PI*2);
+    maskCtx.fillStyle='rgba(0,0,0,1)'; maskCtx.fill();
+    maskCtx.globalCompositeOperation='source-over';
   } else {
-    maskCtx.beginPath(); maskCtx.arc(x, y, State.brushSize, 0, Math.PI*2);
-    maskCtx.fillStyle = 'rgba(255, 50, 50, 0.55)'; maskCtx.fill();
+    maskCtx.beginPath(); maskCtx.arc(x,y,State.brushSize,0,Math.PI*2);
+    maskCtx.fillStyle='rgba(255,50,50,0.55)'; maskCtx.fill();
   }
 }
-function clearMask() {
-  maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
-  if (State.removeActive >= 0) State.removeQueue[State.removeActive].maskData = null;
+function clearMask(){
+  maskCtx.clearRect(0,0,maskCanvas.width,maskCanvas.height);
 }
 
-// ── Template functions ──
-function saveCurrentMaskAsTemplate() {
-  var w = maskCanvas.width, h = maskCanvas.height;
-  if (!w || !h) { toast('Load an image first', 'error'); return; }
-  var px = maskCtx.getImageData(0, 0, w, h).data;
-  var minX=w, minY=h, maxX=0, maxY=0, found=false;
-  for (var y=0; y<h; y++) for (var x=0; x<w; x++) {
-    if (px[(y*w+x)*4+3] > 10) {
-      found=true; minX=Math.min(minX,x); maxX=Math.max(maxX,x); minY=Math.min(minY,y); maxY=Math.max(maxY,y);
-    }
-  }
-  if (!found) { toast('Paint the watermark area first, then save as template', 'error'); return; }
-  State.templateMask = { normX: minX/w, normY: minY/h, normW: (maxX-minX+1)/w, normH: (maxY-minY+1)/h };
-  var pctW = Math.round(State.templateMask.normW*100), pctH = Math.round(State.templateMask.normH*100);
-  document.getElementById('template-status').textContent = 'Template saved: ' + pctW + '% × ' + pctH + ' of image';
-  document.getElementById('template-remove-btn').disabled = State.removeQueue.length === 0;
-  toast('Template saved! ' + pctW + '%w × ' + pctH + '%h region', 'success');
-}
-
-function buildMaskMatFromTemplate(w, h) {
-  if (!State.templateMask) return null;
-  var t = State.templateMask;
-  var x1 = Math.round(t.normX * w), y1 = Math.round(t.normY * h);
-  var x2 = Math.min(w, Math.round((t.normX + t.normW) * w));
-  var y2 = Math.min(h, Math.round((t.normY + t.normH) * h));
-  var m = cv.Mat.zeros(h, w, cv.CV_8UC1);
-  cv.rectangle(m, new cv.Point(x1, y1), new cv.Point(x2, y2), new cv.Scalar(255), -1);
-  return m;
-}
-
-// ── Bulk processing ──
-async function runBulkAutoRemove() {
-  if (!State.removeQueue.length) { toast('Upload images first', 'error'); return; }
-  var btn = document.getElementById('auto-remove-btn');
-  btn.disabled = true; btn.textContent = 'Processing…';
-  var total = State.removeQueue.length, zip = new JSZip(), done = 0, errors = 0;
-  updateProgress('auto-progress-fill','auto-progress-label','auto-progress-wrap', 0, total, 'Starting…');
-
-  for (var i = 0; i < total; i++) {
-    var item = State.removeQueue[i];
-    item.status = 'processing'; renderRemoveQueue();
-    updateProgress('auto-progress-fill','auto-progress-label','auto-progress-wrap', i, total, 'Detecting ' + (i+1) + ' / ' + total + '…');
-    await yieldFrame();
-
-    var srcMat = null, maskMat = null;
-    try {
-      if (!item.origData) {
-        var res = await fileToImageData(item.file);
-        item.origData = res.imageData; item.origWidth = res.width; item.origHeight = res.height;
-      }
-      var W = item.origWidth, H = item.origHeight;
-      srcMat  = cv.matFromImageData(item.origData);
-      maskMat = autoDetectWatermarkMask(srcMat, W, H);
-
-      if (!maskMat) { item.status = 'error'; errors++; renderRemoveQueue(); continue; }
-
-      updateProgress('auto-progress-fill','auto-progress-label','auto-progress-wrap', i, total, 'Removing ' + (i+1) + ' / ' + total + '…');
-      await yieldFrame();
-
-      item.resultData = await inpaintWithMask(item.origData, maskMat, W, H);
-      item.status = 'done'; done++;
-
-      var c = document.createElement('canvas'); c.width = W; c.height = H;
-      c.getContext('2d').putImageData(item.resultData, 0, 0);
-      var blob = await canvasToBlob(c, item.file.type || 'image/png');
-      zip.file('removed_' + item.file.name, blob);
-
-    } catch(err) {
-      item.status = 'error'; errors++;
-      console.error('Auto bulk:', item.file.name, err);
-    } finally {
-      if (srcMat)  srcMat.delete();
-      if (maskMat) maskMat.delete();
-    }
-    renderRemoveQueue();
-    updateProgress('auto-progress-fill','auto-progress-label','auto-progress-wrap', i+1, total, (i+1) + ' / ' + total + ' done');
-  }
-
-  try {
-    var zipBlob = await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:3}});
-    saveAs(zipBlob, 'removed_watermarks.zip');
-    if (errors > 0) toast(done + ' done, ' + errors + ' could not be detected automatically — try Template or Manual mode', 'info');
-    else toast('All ' + total + ' images processed!', 'success');
-  } catch(e) { toast('ZIP error: ' + e.message, 'error'); }
-
-  btn.disabled = false; btn.textContent = 'Auto-Remove All & Download';
-  // Refresh preview if active item is done
-  if (State.removeActive >= 0 && State.removeQueue[State.removeActive].resultData) {
-    State.viewMode = 'after';
-    document.getElementById('ba-after-btn').classList.add('active');
-    document.getElementById('ba-before-btn').classList.remove('active');
-    refreshSourceCanvas();
-  }
-}
-
-async function runBulkTemplate() {
-  if (!State.templateMask) { toast('Save a template first', 'error'); return; }
-  if (!State.removeQueue.length) { toast('Upload images first', 'error'); return; }
-  var btn = document.getElementById('template-remove-btn');
-  btn.disabled = true; btn.textContent = 'Processing…';
-  var total = State.removeQueue.length, zip = new JSZip(), done = 0, errors = 0;
-  updateProgress('tmpl-progress-fill','tmpl-progress-label','tmpl-progress-wrap', 0, total, 'Starting…');
-
-  for (var i = 0; i < total; i++) {
-    var item = State.removeQueue[i];
-    item.status = 'processing'; renderRemoveQueue();
-    updateProgress('tmpl-progress-fill','tmpl-progress-label','tmpl-progress-wrap', i, total, 'Processing ' + (i+1) + ' / ' + total + '…');
-    await yieldFrame();
-
-    var maskMat = null;
-    try {
-      if (!item.origData) {
-        var res2 = await fileToImageData(item.file);
-        item.origData = res2.imageData; item.origWidth = res2.width; item.origHeight = res2.height;
-      }
-      var W2 = item.origWidth, H2 = item.origHeight;
-      maskMat = buildMaskMatFromTemplate(W2, H2);
-      if (!maskMat) { item.status = 'error'; errors++; renderRemoveQueue(); continue; }
-
-      item.resultData = await inpaintWithMask(item.origData, maskMat, W2, H2);
-      item.status = 'done'; done++;
-
-      var c2 = document.createElement('canvas'); c2.width = W2; c2.height = H2;
-      c2.getContext('2d').putImageData(item.resultData, 0, 0);
-      var blob2 = await canvasToBlob(c2, item.file.type || 'image/png');
-      zip.file('removed_' + item.file.name, blob2);
-
-    } catch(err2) {
-      item.status = 'error'; errors++;
-      console.error('Template bulk:', item.file.name, err2);
-    } finally {
-      if (maskMat) maskMat.delete();
-    }
-    renderRemoveQueue();
-    updateProgress('tmpl-progress-fill','tmpl-progress-label','tmpl-progress-wrap', i+1, total, (i+1) + ' / ' + total + ' done');
-  }
-
-  try {
-    var zipBlob2 = await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:3}});
-    saveAs(zipBlob2, 'removed_watermarks.zip');
-    toast(done + ' done' + (errors ? ', ' + errors + ' failed' : ''), errors ? 'info' : 'success');
-  } catch(e2) { toast('ZIP error: ' + e2.message, 'error'); }
-
-  btn.disabled = State.removeQueue.length === 0; btn.textContent = 'Apply Template + Remove All';
-}
-
-// ── Manual inpaint (single image) ──
-async function runManualInpaint() {
+// ── Auto remove current image ──
+async function runAutoRemoveCurrent() {
   var idx = State.removeActive;
-  if (idx < 0) return;
+  if(idx < 0){ toast('Select an image first','error'); return; }
   var item = State.removeQueue[idx];
-
-  item.maskData = maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
-  var maskPx = item.maskData.data, w = maskCanvas.width, h = maskCanvas.height;
-  var hasMask = false;
-  for (var i = 3; i < maskPx.length; i += 4) { if (maskPx[i] > 10) { hasMask=true; break; } }
-  if (!hasMask) { toast('Paint over the watermark first', 'error'); return; }
-
+  var btn  = document.getElementById('auto-remove-btn');
+  btn.disabled = true; btn.textContent = 'Detecting…';
   item.status = 'processing'; renderRemoveQueue();
-  var btn = document.getElementById('inpaint-btn');
-  btn.disabled = true; btn.textContent = 'Processing…';
   await yieldFrame();
 
-  var maskMat = null;
+  var srcMat=null, maskMat=null;
   try {
-    var binary = new Uint8Array(w * h);
-    for (var j = 0; j < w*h; j++) binary[j] = maskPx[j*4+3] > 10 ? 255 : 0;
-    maskMat = new cv.Mat(h, w, cv.CV_8UC1);
-    maskMat.data.set(binary);
+    if(!item.origData){
+      var res = await fileToImageData(item.file);
+      item.origData=res.imageData; item.origWidth=res.width; item.origHeight=res.height;
+    }
+    var W=item.origWidth, H=item.origHeight;
+    srcMat  = cv.matFromImageData(item.origData);
+    maskMat = autoDetectWatermarkMask(srcMat, W, H);
 
-    item.resultData = await inpaintWithMask(item.origData, maskMat, w, h);
+    if(!maskMat){
+      item.status='ready'; renderRemoveQueue();
+      toast('No watermark detected automatically. Use Manual Edit to paint it.','info');
+      setManualPanelOpen(true);
+      return;
+    }
+
+    btn.textContent='Removing…'; await yieldFrame();
+    item.resultData = await inpaintWithMask(item.origData, maskMat, W, H);
     item.status = 'done';
-    State.viewMode = 'after';
+
+    State.viewMode='after';
     document.getElementById('ba-after-btn').classList.add('active');
     document.getElementById('ba-before-btn').classList.remove('active');
     refreshSourceCanvas();
-    document.getElementById('remove-download-btn').disabled = false;
-    toast('Watermark removed!', 'success');
+    setResultVisible(true);
+    renderRemoveQueue();
+    toast('Done! Toggle Before/After to compare.','success');
 
-  } catch(err) {
-    item.status = 'error';
-    toast('Processing failed: ' + err.message, 'error');
+  } catch(err){
+    item.status='error'; renderRemoveQueue();
+    toast('Error: '+err.message,'error');
+    console.error('autoRemove:', err);
   } finally {
-    if (maskMat) maskMat.delete();
-  }
-
-  btn.disabled = false; btn.textContent = 'Remove Watermark';
-  renderRemoveQueue();
-
-  if (document.getElementById('auto-advance').checked) {
-    var next = idx + 1;
-    if (next < State.removeQueue.length) setTimeout(function(){ loadRemoveItem(next); }, 400);
+    if(srcMat)  srcMat.delete();
+    if(maskMat) maskMat.delete();
+    btn.disabled=false; btn.textContent='▶ Remove Watermark';
   }
 }
 
+// ── Manual inpaint ──
+async function runManualInpaint() {
+  var idx = State.removeActive; if(idx<0) return;
+  var item = State.removeQueue[idx];
+  var maskPx = maskCtx.getImageData(0,0,maskCanvas.width,maskCanvas.height).data;
+  var hasMask=false;
+  for(var i=3;i<maskPx.length;i+=4){ if(maskPx[i]>10){hasMask=true;break;} }
+  if(!hasMask){ toast('Paint over the watermark first','error'); return; }
+
+  var btn = document.getElementById('inpaint-btn');
+  btn.disabled=true; btn.textContent='Processing…';
+  item.status='processing'; renderRemoveQueue();
+  await yieldFrame();
+
+  var maskMat=null;
+  try {
+    var w=maskCanvas.width, h=maskCanvas.height;
+    var binary=new Uint8Array(w*h);
+    for(var j=0;j<w*h;j++) binary[j]=maskPx[j*4+3]>10?255:0;
+    maskMat=new cv.Mat(h,w,cv.CV_8UC1); maskMat.data.set(binary);
+    item.resultData = await inpaintWithMask(item.origData,maskMat,w,h);
+    item.status='done';
+    State.viewMode='after';
+    document.getElementById('ba-after-btn').classList.add('active');
+    document.getElementById('ba-before-btn').classList.remove('active');
+    refreshSourceCanvas(); setResultVisible(true);
+    toast('Done!','success');
+  } catch(err){
+    item.status='error'; toast('Error: '+err.message,'error');
+  } finally {
+    if(maskMat) maskMat.delete();
+    btn.disabled=false; btn.textContent='Apply Removal';
+  }
+  renderRemoveQueue();
+}
+
+// ── Download current ──
 async function downloadRemoveResult() {
-  var item = State.removeActive >= 0 ? State.removeQueue[State.removeActive] : null;
-  if (!item || !item.resultData) return;
-  var c = document.createElement('canvas'); c.width = item.origWidth; c.height = item.origHeight;
-  c.getContext('2d').putImageData(item.resultData, 0, 0);
-  var blob = await canvasToBlob(c, item.file.type || 'image/png');
-  saveAs(blob, 'removed_' + item.file.name);
-  toast('Downloaded!', 'success');
+  var item = State.removeActive>=0 ? State.removeQueue[State.removeActive] : null;
+  if(!item||!item.resultData) return;
+  var c=document.createElement('canvas'); c.width=item.origWidth; c.height=item.origHeight;
+  c.getContext('2d').putImageData(item.resultData,0,0);
+  var blob=await canvasToBlob(c,item.file.type||'image/png');
+  saveAs(blob,'removed_'+item.file.name);
+  toast('Downloaded!','success');
+}
+
+// ── Process all queue ──
+async function processAllQueue() {
+  if(!State.removeQueue.length) return;
+  var btn=document.getElementById('process-all-btn');
+  btn.disabled=true; btn.textContent='Processing…';
+  var wrap=document.getElementById('bulk-progress-wrap');
+  var fill=document.getElementById('bulk-progress-fill');
+  var lbl=document.getElementById('bulk-progress-label');
+  wrap.style.display=''; document.getElementById('download-all-btn').style.display='none';
+  var total=State.removeQueue.length, done=0, errors=0;
+
+  for(var i=0;i<total;i++){
+    var item=State.removeQueue[i];
+    if(item.status==='done'&&item.resultData){ done++; continue; }
+    item.status='processing'; renderRemoveQueue();
+    lbl.textContent='Processing '+(i+1)+' / '+total+'…';
+    fill.style.width=Math.round(i/total*100)+'%';
+    await yieldFrame();
+    var srcMat=null, maskMat=null;
+    try {
+      if(!item.origData){
+        var r=await fileToImageData(item.file);
+        item.origData=r.imageData; item.origWidth=r.width; item.origHeight=r.height;
+      }
+      srcMat=cv.matFromImageData(item.origData);
+      maskMat=autoDetectWatermarkMask(srcMat,item.origWidth,item.origHeight);
+      if(!maskMat){ item.status='error'; errors++; continue; }
+      item.resultData=await inpaintWithMask(item.origData,maskMat,item.origWidth,item.origHeight);
+      item.status='done'; done++;
+    } catch(e){ item.status='error'; errors++; console.error('processAll:',item.file.name,e); }
+    finally{ if(srcMat)srcMat.delete(); if(maskMat)maskMat.delete(); }
+    renderRemoveQueue();
+  }
+
+  fill.style.width='100%';
+  lbl.textContent=done+' done'+(errors?', '+errors+' failed — use Manual Edit for those':'');
+  if(done>0) document.getElementById('download-all-btn').style.display='';
+  btn.disabled=false; btn.textContent='⚡ Process All';
+  if(errors) toast(done+' done, '+errors+' failed — open those images and use Manual Edit','info');
+  else toast('All '+total+' images processed!','success');
+
+  // Refresh canvas if active item was just processed
+  var ai=State.removeActive>=0?State.removeQueue[State.removeActive]:null;
+  if(ai&&ai.status==='done'&&ai.resultData){
+    State.viewMode='after';
+    document.getElementById('ba-after-btn').classList.add('active');
+    document.getElementById('ba-before-btn').classList.remove('active');
+    refreshSourceCanvas(); setResultVisible(true);
+  }
+}
+
+// ── Download all processed as ZIP ──
+async function downloadAllDone() {
+  var doneItems=State.removeQueue.filter(function(x){ return x.status==='done'&&x.resultData; });
+  if(!doneItems.length){ toast('No processed images yet','error'); return; }
+  var btn=document.getElementById('download-all-btn');
+  btn.disabled=true; btn.textContent='Zipping…';
+  var zip=new JSZip();
+  for(var i=0;i<doneItems.length;i++){
+    var item=doneItems[i];
+    var c=document.createElement('canvas'); c.width=item.origWidth; c.height=item.origHeight;
+    c.getContext('2d').putImageData(item.resultData,0,0);
+    var blob=await canvasToBlob(c,item.file.type||'image/png');
+    zip.file('removed_'+item.file.name,blob);
+    await yieldFrame();
+  }
+  try{
+    var zb=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:3}});
+    saveAs(zb,'removed_watermarks.zip');
+    toast(doneItems.length+' images downloaded!','success');
+  }catch(e){ toast('ZIP error: '+e.message,'error'); }
+  btn.disabled=false; btn.textContent='↓ Download All Done';
 }
 
 // ── Queue management ──
 async function addRemoveFiles(files) {
-  if (!files.length) return;
-  for (var i = 0; i < files.length; i++) {
-    var thumb = await makeThumbnail(files[i]);
-    State.removeQueue.push({ file: files[i], thumb: thumb, origData: null, maskData: null, resultData: null, status: 'pending', origWidth: 0, origHeight: 0 });
+  if(!files.length) return;
+  var remaining=MAX_QUEUE-State.removeQueue.length;
+  if(remaining<=0){ toast('Queue is full (max '+MAX_QUEUE+' images)','info'); return; }
+  var toAdd=Array.from(files).slice(0,remaining);
+  if(files.length>remaining) toast('Added '+toAdd.length+' of '+files.length+' — queue limited to '+MAX_QUEUE,'info');
+  for(var i=0;i<toAdd.length;i++){
+    var thumb=await makeThumbnail(toAdd[i]);
+    State.removeQueue.push({file:toAdd[i],thumb:thumb,origData:null,resultData:null,status:'pending',origWidth:0,origHeight:0});
   }
   renderRemoveQueue();
-  if (State.removeActive < 0) loadRemoveItem(0);
-  // Enable action buttons
-  document.getElementById('auto-remove-btn').disabled = false;
-  if (State.templateMask) document.getElementById('template-remove-btn').disabled = false;
+  if(State.removeActive<0) loadRemoveItem(0);
+  document.getElementById('auto-remove-btn').disabled=false;
+  setBulkVisible(State.removeQueue.length>1);
 }
 
 function renderRemoveQueue() {
-  var list = document.getElementById('remove-queue-list');
-  document.getElementById('remove-queue-count').textContent = State.removeQueue.length;
-  list.innerHTML = '';
-  State.removeQueue.forEach(function(item, idx) {
-    var li = document.createElement('div');
-    li.className = 'queue-item' + (idx === State.removeActive ? ' active' : '');
-    li.innerHTML =
-      '<img class="qi-thumb" src="' + item.thumb + '" alt="">' +
-      '<div class="qi-info"><div class="qi-name">' + escHtml(item.file.name) + '</div>' +
-      '<span class="qi-status ' + item.status + '">' + item.status + '</span></div>' +
-      '<button class="qi-del" data-idx="' + idx + '">✕</button>';
-    li.querySelector('.qi-thumb').addEventListener('click', function(){ loadRemoveItem(idx); });
-    li.querySelector('.qi-info').addEventListener('click',  function(){ loadRemoveItem(idx); });
-    li.querySelector('.qi-del').addEventListener('click', function(e){
-      e.stopPropagation();
-      removeFromQueue(parseInt(e.currentTarget.dataset.idx));
-    });
+  var list=document.getElementById('remove-queue-list');
+  document.getElementById('remove-queue-count').textContent=State.removeQueue.length;
+  list.innerHTML='';
+  State.removeQueue.forEach(function(item,idx){
+    var li=document.createElement('div');
+    li.className='queue-item'+(idx===State.removeActive?' active':'');
+    li.innerHTML='<img class="qi-thumb" src="'+item.thumb+'" alt="">'+
+      '<div class="qi-info"><div class="qi-name">'+escHtml(item.file.name)+'</div>'+
+      '<span class="qi-status '+item.status+'">'+item.status+'</span></div>'+
+      '<button class="qi-del" data-idx="'+idx+'">✕</button>';
+    (function(i){
+      li.querySelector('.qi-thumb').addEventListener('click',function(){ loadRemoveItem(i); });
+      li.querySelector('.qi-info').addEventListener('click', function(){ loadRemoveItem(i); });
+      li.querySelector('.qi-del').addEventListener('click',function(e){
+        e.stopPropagation(); removeFromQueue(parseInt(e.currentTarget.dataset.idx));
+      });
+    })(idx);
     list.appendChild(li);
   });
 }
 
 function removeFromQueue(idx) {
-  State.removeQueue.splice(idx, 1);
-  if (State.removeActive === idx) {
-    State.removeActive = -1;
-    if (State.removeQueue.length > 0) loadRemoveItem(Math.min(idx, State.removeQueue.length-1));
+  State.removeQueue.splice(idx,1);
+  if(State.removeActive===idx){
+    State.removeActive=-1;
+    if(State.removeQueue.length>0) loadRemoveItem(Math.min(idx,State.removeQueue.length-1));
     else showRemoveEmpty();
-  } else if (State.removeActive > idx) State.removeActive--;
+  } else if(State.removeActive>idx) State.removeActive--;
   renderRemoveQueue();
-  var hasItems = State.removeQueue.length > 0;
-  document.getElementById('auto-remove-btn').disabled = !hasItems;
-  if (!hasItems || !State.templateMask) document.getElementById('template-remove-btn').disabled = true;
+  document.getElementById('auto-remove-btn').disabled=State.removeQueue.length===0;
+  setBulkVisible(State.removeQueue.length>1);
 }
 
 function showRemoveEmpty() {
-  document.getElementById('remove-empty').style.display = '';
-  document.getElementById('remove-canvas-wrap').style.display = 'none';
-  document.getElementById('inpaint-btn').disabled = true;
-  document.getElementById('remove-download-btn').disabled = true;
+  document.getElementById('remove-empty').style.display='';
+  document.getElementById('remove-canvas-wrap').style.display='none';
+  setResultVisible(false); setManualPanelOpen(false);
 }
 
 async function loadRemoveItem(idx) {
-  if (idx < 0 || idx >= State.removeQueue.length) return;
-  if (State.removeActive >= 0 && State.removeActive < State.removeQueue.length) {
-    State.removeQueue[State.removeActive].maskData = maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
+  if(idx<0||idx>=State.removeQueue.length) return;
+  State.removeActive=idx;
+  var item=State.removeQueue[idx];
+  document.getElementById('remove-empty').style.display='none';
+  document.getElementById('remove-canvas-wrap').style.display='';
+
+  if(!item.origData){
+    var res=await fileToImageData(item.file);
+    item.origData=res.imageData; item.origWidth=res.width; item.origHeight=res.height;
   }
-  State.removeActive = idx;
-  var item = State.removeQueue[idx];
-  if (item.status === 'pending') item.status = 'editing';
+  sourceCanvas.width=item.origWidth; sourceCanvas.height=item.origHeight;
+  maskCanvas.width=item.origWidth;   maskCanvas.height=item.origHeight;
+  maskCtx.clearRect(0,0,maskCanvas.width,maskCanvas.height);
 
-  document.getElementById('remove-empty').style.display = 'none';
-  document.getElementById('remove-canvas-wrap').style.display = '';
-
-  if (!item.origData) {
-    var res = await fileToImageData(item.file);
-    item.origData = res.imageData; item.origWidth = res.width; item.origHeight = res.height;
+  if(item.resultData){
+    State.viewMode='after';
+    document.getElementById('ba-after-btn').classList.add('active');
+    document.getElementById('ba-before-btn').classList.remove('active');
+    setResultVisible(true);
+  } else {
+    State.viewMode='before';
+    document.getElementById('ba-before-btn').classList.add('active');
+    document.getElementById('ba-after-btn').classList.remove('active');
+    setResultVisible(false);
   }
-
-  sourceCanvas.width = item.origWidth; sourceCanvas.height = item.origHeight;
-  maskCanvas.width   = item.origWidth; maskCanvas.height   = item.origHeight;
-  State.viewMode = 'before';
-  document.getElementById('ba-before-btn').classList.add('active');
-  document.getElementById('ba-after-btn').classList.remove('active');
   refreshSourceCanvas();
-
-  maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
-  if (item.maskData) maskCtx.putImageData(item.maskData, 0, 0);
-
-  document.getElementById('inpaint-btn').disabled = false;
-  document.getElementById('remove-download-btn').disabled = !item.resultData;
   renderRemoveQueue();
 }
 
 function refreshSourceCanvas() {
-  var item = State.removeActive >= 0 ? State.removeQueue[State.removeActive] : null;
-  if (!item) return;
-  var data = (State.viewMode === 'after' && item.resultData) ? item.resultData : item.origData;
-  if (data) sourceCtx.putImageData(data, 0, 0);
+  var item=State.removeActive>=0?State.removeQueue[State.removeActive]:null;
+  if(!item) return;
+  var data=(State.viewMode==='after'&&item.resultData)?item.resultData:item.origData;
+  if(data) sourceCtx.putImageData(data,0,0);
 }
 
 // ══════════════════════════════════════════════
-// SECTION 5 — ADD WATERMARK MODULE
+// SECTION 6 — ADD WATERMARK MODULE
 // ══════════════════════════════════════════════
 var wmPreviewCanvas = document.getElementById('wm-preview-canvas');
 var wmPreviewCtx    = wmPreviewCanvas.getContext('2d');
 var wmDebounce      = null;
 
 function initAddTab() {
-  var zone = document.getElementById('add-upload-zone');
-  var inp  = document.getElementById('add-file-input');
-  zone.addEventListener('click', function() { inp.click(); });
-  inp.addEventListener('change', function() { addWmFiles(Array.from(inp.files)); inp.value=''; });
-  zone.addEventListener('dragover',  function(e){ e.preventDefault(); zone.classList.add('drag-over'); });
-  zone.addEventListener('dragleave', function(){ zone.classList.remove('drag-over'); });
-  zone.addEventListener('drop', function(e){
+  var zone=document.getElementById('add-upload-zone');
+  var inp =document.getElementById('add-file-input');
+  zone.addEventListener('click',function(){ inp.click(); });
+  inp.addEventListener('change',function(){ addWmFiles(Array.from(inp.files)); inp.value=''; });
+  zone.addEventListener('dragover',function(e){ e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave',function(){ zone.classList.remove('drag-over'); });
+  zone.addEventListener('drop',function(e){
     e.preventDefault(); zone.classList.remove('drag-over');
     addWmFiles(Array.from(e.dataTransfer.files).filter(function(f){ return f.type.startsWith('image/'); }));
   });
-
-  document.getElementById('wm-text').addEventListener('input', function(){ State.wm.text = this.value; schedulePreview(); });
-  document.getElementById('wm-fontsize').addEventListener('input', function(){
-    State.wm.fontSize = parseInt(this.value);
-    document.getElementById('wm-fontsize-val').textContent = this.value;
-    schedulePreview();
+  document.getElementById('wm-text').addEventListener('input',function(){ State.wm.text=this.value; schedulePreview(); });
+  document.getElementById('wm-fontsize').addEventListener('input',function(){
+    State.wm.fontSize=parseInt(this.value);
+    document.getElementById('wm-fontsize-val').textContent=this.value; schedulePreview();
   });
-  document.getElementById('wm-color').addEventListener('input', function(){ State.wm.color = this.value; schedulePreview(); });
-  document.getElementById('wm-opacity').addEventListener('input', function(){
-    State.wm.opacity = parseInt(this.value) / 100;
-    document.getElementById('wm-opacity-val').textContent = this.value + '%';
-    schedulePreview();
+  document.getElementById('wm-color').addEventListener('input',function(){ State.wm.color=this.value; schedulePreview(); });
+  document.getElementById('wm-opacity').addEventListener('input',function(){
+    State.wm.opacity=parseInt(this.value)/100;
+    document.getElementById('wm-opacity-val').textContent=this.value+'%'; schedulePreview();
   });
-  document.getElementById('wm-rotation').addEventListener('input', function(){
-    State.wm.rotation = parseInt(this.value);
-    document.getElementById('wm-rotation-val').textContent = this.value + '°';
-    schedulePreview();
+  document.getElementById('wm-rotation').addEventListener('input',function(){
+    State.wm.rotation=parseInt(this.value);
+    document.getElementById('wm-rotation-val').textContent=this.value+'°'; schedulePreview();
   });
-  document.getElementById('wm-tiled').addEventListener('change', function(){ State.wm.tiled = this.checked; schedulePreview(); });
-  document.getElementById('wm-output-format').addEventListener('change', function(){ State.wm.outputFormat = this.value; });
-  document.querySelectorAll('.pos-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
+  document.getElementById('wm-tiled').addEventListener('change',function(){ State.wm.tiled=this.checked; schedulePreview(); });
+  document.getElementById('wm-output-format').addEventListener('change',function(){ State.wm.outputFormat=this.value; });
+  document.querySelectorAll('.pos-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
       document.querySelectorAll('.pos-btn').forEach(function(b){ b.classList.remove('active'); });
-      btn.classList.add('active');
-      State.wm.position = btn.dataset.pos;
-      schedulePreview();
+      btn.classList.add('active'); State.wm.position=btn.dataset.pos; schedulePreview();
     });
   });
-  document.getElementById('apply-wm-btn').addEventListener('click', applyWatermarkAll);
+  document.getElementById('apply-wm-btn').addEventListener('click',applyWatermarkAll);
 }
 
-function schedulePreview() { clearTimeout(wmDebounce); wmDebounce = setTimeout(renderWmPreview, 80); }
+function schedulePreview(){ clearTimeout(wmDebounce); wmDebounce=setTimeout(renderWmPreview,80); }
 
 async function addWmFiles(files) {
-  if (!files.length) return;
-  for (var i = 0; i < files.length; i++) {
-    var thumb = await makeThumbnail(files[i]);
-    State.addQueue.push({ file: files[i], thumb: thumb, status: 'pending' });
+  if(!files.length) return;
+  for(var i=0;i<files.length;i++){
+    var thumb=await makeThumbnail(files[i]);
+    State.addQueue.push({file:files[i],thumb:thumb,status:'pending'});
   }
   renderAddQueue();
-  if (State.addActive < 0) { State.addActive = 0; renderWmPreview(); }
-  document.getElementById('apply-wm-btn').disabled = false;
+  if(State.addActive<0){ State.addActive=0; renderWmPreview(); }
+  document.getElementById('apply-wm-btn').disabled=false;
 }
 
 function renderAddQueue() {
-  var list = document.getElementById('add-queue-list');
-  document.getElementById('add-queue-count').textContent = State.addQueue.length;
-  list.innerHTML = '';
-  State.addQueue.forEach(function(item, idx) {
-    var li = document.createElement('div');
-    li.className = 'queue-item' + (idx === State.addActive ? ' active' : '');
-    li.innerHTML =
-      '<img class="qi-thumb" src="' + item.thumb + '" alt="">' +
-      '<div class="qi-info"><div class="qi-name">' + escHtml(item.file.name) + '</div>' +
-      '<span class="qi-status ' + item.status + '">' + item.status + '</span></div>' +
-      '<button class="qi-del" data-idx="' + idx + '">✕</button>';
-    li.querySelector('.qi-thumb').addEventListener('click', function(){ setAddActive(idx); });
-    li.querySelector('.qi-info').addEventListener('click',  function(){ setAddActive(idx); });
-    li.querySelector('.qi-del').addEventListener('click', function(e){
-      e.stopPropagation();
-      State.addQueue.splice(parseInt(e.currentTarget.dataset.idx), 1);
-      if (State.addActive >= State.addQueue.length) State.addActive = State.addQueue.length - 1;
-      renderAddQueue();
-      if (!State.addQueue.length) {
-        document.getElementById('add-empty').style.display = '';
-        wmPreviewCanvas.style.display = 'none';
-        document.getElementById('apply-wm-btn').disabled = true;
-      } else renderWmPreview();
-    });
+  var list=document.getElementById('add-queue-list');
+  document.getElementById('add-queue-count').textContent=State.addQueue.length;
+  list.innerHTML='';
+  State.addQueue.forEach(function(item,idx){
+    var li=document.createElement('div');
+    li.className='queue-item'+(idx===State.addActive?' active':'');
+    li.innerHTML='<img class="qi-thumb" src="'+item.thumb+'" alt="">'+
+      '<div class="qi-info"><div class="qi-name">'+escHtml(item.file.name)+'</div>'+
+      '<span class="qi-status '+item.status+'">'+item.status+'</span></div>'+
+      '<button class="qi-del" data-idx="'+idx+'">✕</button>';
+    (function(i){
+      li.querySelector('.qi-thumb').addEventListener('click',function(){ setAddActive(i); });
+      li.querySelector('.qi-info').addEventListener('click', function(){ setAddActive(i); });
+      li.querySelector('.qi-del').addEventListener('click',function(e){
+        e.stopPropagation();
+        State.addQueue.splice(parseInt(e.currentTarget.dataset.idx),1);
+        if(State.addActive>=State.addQueue.length) State.addActive=State.addQueue.length-1;
+        renderAddQueue();
+        if(!State.addQueue.length){ document.getElementById('add-empty').style.display=''; wmPreviewCanvas.style.display='none'; document.getElementById('apply-wm-btn').disabled=true; }
+        else renderWmPreview();
+      });
+    })(idx);
     list.appendChild(li);
   });
 }
 
-function setAddActive(idx) { State.addActive = idx; renderAddQueue(); renderWmPreview(); }
+function setAddActive(idx){ State.addActive=idx; renderAddQueue(); renderWmPreview(); }
 
 async function renderWmPreview() {
-  if (State.addActive < 0 || State.addActive >= State.addQueue.length) return;
-  var item = State.addQueue[State.addActive];
-  var res = await fileToImageData(item.file);
-  wmPreviewCanvas.width = res.width; wmPreviewCanvas.height = res.height;
-  wmPreviewCtx.putImageData(res.imageData, 0, 0);
-  drawWatermark(wmPreviewCtx, res.width, res.height, State.wm);
-  document.getElementById('add-empty').style.display = 'none';
-  wmPreviewCanvas.style.display = 'block';
+  if(State.addActive<0||State.addActive>=State.addQueue.length) return;
+  var item=State.addQueue[State.addActive];
+  var res=await fileToImageData(item.file);
+  wmPreviewCanvas.width=res.width; wmPreviewCanvas.height=res.height;
+  wmPreviewCtx.putImageData(res.imageData,0,0);
+  drawWatermark(wmPreviewCtx,res.width,res.height,State.wm);
+  document.getElementById('add-empty').style.display='none';
+  wmPreviewCanvas.style.display='block';
 }
 
-function drawWatermark(ctx, imgW, imgH, s) {
-  ctx.save();
-  ctx.globalAlpha = s.opacity;
-  ctx.fillStyle   = s.color;
-  var fs = Math.max(10, s.fontSize);
-  ctx.font = 'bold ' + fs + 'px Barlow, Arial, sans-serif';
-  ctx.textBaseline = 'middle';
-
-  if (s.tiled) {
-    var sp = fs * 5;
-    ctx.translate(imgW/2, imgH/2);
-    ctx.rotate(s.rotation * Math.PI / 180);
-    ctx.translate(-imgW/2, -imgH/2);
-    var tw0 = ctx.measureText(s.text).width;
-    for (var ty = -imgH; ty < imgH*2; ty += sp)
-      for (var tx = -imgW; tx < imgW*2; tx += sp + tw0)
-        ctx.fillText(s.text, tx, ty);
+function drawWatermark(ctx,imgW,imgH,s) {
+  ctx.save(); ctx.globalAlpha=s.opacity; ctx.fillStyle=s.color;
+  var fs=Math.max(10,s.fontSize);
+  ctx.font='bold '+fs+'px Barlow,Arial,sans-serif'; ctx.textBaseline='middle';
+  if(s.tiled){
+    var sp=fs*5; ctx.translate(imgW/2,imgH/2); ctx.rotate(s.rotation*Math.PI/180); ctx.translate(-imgW/2,-imgH/2);
+    var tw0=ctx.measureText(s.text).width;
+    for(var ty=-imgH;ty<imgH*2;ty+=sp) for(var tx=-imgW;tx<imgW*2;tx+=sp+tw0) ctx.fillText(s.text,tx,ty);
   } else {
-    var tw = ctx.measureText(s.text).width;
-    var pad = Math.max(16, imgW * 0.02);
-    var xMap = { L: pad, C: (imgW-tw)/2, R: imgW-tw-pad };
-    var yMap = { T: pad+fs/2, C: imgH/2, B: imgH-pad-fs/2 };
-    var px = xMap[s.position[1]] || pad, py = yMap[s.position[0]] || pad;
-    ctx.translate(px + tw/2, py);
-    ctx.rotate(s.rotation * Math.PI / 180);
-    ctx.fillText(s.text, -tw/2, 0);
+    var tw=ctx.measureText(s.text).width;
+    var pad=Math.max(16,imgW*0.02);
+    var xMap={L:pad,C:(imgW-tw)/2,R:imgW-tw-pad};
+    var yMap={T:pad+fs/2,C:imgH/2,B:imgH-pad-fs/2};
+    var px=xMap[s.position[1]]||pad, py=yMap[s.position[0]]||pad;
+    ctx.translate(px+tw/2,py); ctx.rotate(s.rotation*Math.PI/180); ctx.fillText(s.text,-tw/2,0);
   }
   ctx.restore();
 }
 
 async function applyWatermarkAll() {
-  if (!State.addQueue.length) return;
-  var btn = document.getElementById('apply-wm-btn');
-  btn.disabled = true; btn.textContent = 'Processing…';
-  var wrap = document.getElementById('add-progress-wrap');
-  var fill = document.getElementById('add-progress-fill');
-  var lbl  = document.getElementById('add-progress-label');
-  wrap.style.display = '';
-
-  var total = State.addQueue.length, zip = total > 1 ? new JSZip() : null;
-
-  for (var i = 0; i < total; i++) {
-    var item = State.addQueue[i];
-    item.status = 'processing'; renderAddQueue();
-    lbl.textContent = i + ' / ' + total;
-    fill.style.width = Math.round(i/total*100) + '%';
-    await yieldFrame();
-
-    try {
-      var res = await fileToImageData(item.file);
-      var off = document.createElement('canvas'); off.width = res.width; off.height = res.height;
-      var ctx = off.getContext('2d');
-      ctx.putImageData(res.imageData, 0, 0);
-      drawWatermark(ctx, res.width, res.height, State.wm);
-      var mime = outputMime(item);
-      var blob = await canvasToBlob(off, mime);
-      var fname = stripExt(item.file.name) + '_watermarked.' + extForMime(mime);
-      if (zip) zip.file(fname, blob); else saveAs(blob, fname);
-      item.status = 'done';
-    } catch(e) { item.status = 'error'; console.error(e); }
+  if(!State.addQueue.length) return;
+  var btn=document.getElementById('apply-wm-btn');
+  btn.disabled=true; btn.textContent='Processing…';
+  var wrap=document.getElementById('add-progress-wrap');
+  var fill=document.getElementById('add-progress-fill');
+  var lbl=document.getElementById('add-progress-label');
+  wrap.style.display='';
+  var total=State.addQueue.length, zip=total>1?new JSZip():null;
+  for(var i=0;i<total;i++){
+    var item=State.addQueue[i]; item.status='processing'; renderAddQueue();
+    lbl.textContent=i+' / '+total; fill.style.width=Math.round(i/total*100)+'%'; await yieldFrame();
+    try{
+      var res=await fileToImageData(item.file);
+      var off=document.createElement('canvas'); off.width=res.width; off.height=res.height;
+      var ctx=off.getContext('2d'); ctx.putImageData(res.imageData,0,0);
+      drawWatermark(ctx,res.width,res.height,State.wm);
+      var mime=outputMime(item), blob=await canvasToBlob(off,mime);
+      var fname=stripExt(item.file.name)+'_watermarked.'+extForMime(mime);
+      if(zip) zip.file(fname,blob); else saveAs(blob,fname);
+      item.status='done';
+    }catch(e){ item.status='error'; console.error(e); }
     renderAddQueue();
   }
-
-  fill.style.width = '100%';
-  lbl.textContent = total + ' / ' + total + ' done';
-
-  if (zip) {
-    try {
-      var zb = await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:3}});
-      saveAs(zb, 'prypco_watermarked.zip');
-      toast(total + ' images watermarked & downloaded', 'success');
-    } catch(ze) { toast('ZIP error: ' + ze.message, 'error'); }
-  } else {
-    toast('Image downloaded!', 'success');
-  }
-
-  btn.disabled = false; btn.textContent = 'Apply & Download';
-  setTimeout(function(){ wrap.style.display = 'none'; }, 3000);
+  fill.style.width='100%'; lbl.textContent=total+' / '+total+' done';
+  if(zip){
+    try{
+      var zb=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:3}});
+      saveAs(zb,'prypco_watermarked.zip'); toast(total+' images watermarked!','success');
+    }catch(ze){ toast('ZIP error: '+ze.message,'error'); }
+  } else { toast('Image downloaded!','success'); }
+  btn.disabled=false; btn.textContent='Apply & Download';
+  setTimeout(function(){ wrap.style.display='none'; },3000);
 }
 
 // ══════════════════════════════════════════════
-// SECTION 6 — APP INIT
+// SECTION 7 — APP INIT
 // ══════════════════════════════════════════════
 function initApp() {
   initRemoveTab();
   initAddTab();
-  setRemoveMode('auto');
-
-  document.querySelectorAll('.tab-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
+  document.querySelectorAll('.tab-btn').forEach(function(btn){
+    btn.addEventListener('click',function(){
       document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
       document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
       btn.classList.add('active');
-      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
     });
   });
 }
