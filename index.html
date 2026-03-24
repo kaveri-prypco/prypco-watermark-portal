@@ -516,18 +516,18 @@ async function inpaintWithMask(origData, maskMat, w, h) {
   }
 
   // Simple/gradient background → scanline fill (zero blur, perfect for walls/sky)
-  if (stdDev < 42) return gradientFill(origData, maskData, w, h, x1, y1, x2, y2);
+  if (stdDev < 38) return gradientFill(origData, maskData, w, h, x1, y1, x2, y2);
 
-  // Complex background → OpenCV Navier-Stokes
-  var srcMat=null, srcBGR=null, dstMat=null, dstRGBA=null;
+  // Complex background → OpenCV TELEA inpainting (value=1, most stable in OpenCV.js)
+  var srcMat2=null, srcBGR=null, dstMat=null, dstRGBA=null;
   try {
-    srcMat = cv.matFromImageData(origData);
-    srcBGR = new cv.Mat(); cv.cvtColor(srcMat, srcBGR, cv.COLOR_RGBA2BGR);
-    dstMat = new cv.Mat(); cv.inpaint(srcBGR, maskMat, dstMat, 5, cv.INPAINT_NS);
+    srcMat2 = cv.matFromImageData(origData);
+    srcBGR = new cv.Mat(); cv.cvtColor(srcMat2, srcBGR, cv.COLOR_RGBA2BGR);
+    dstMat = new cv.Mat(); cv.inpaint(srcBGR, maskMat, dstMat, 5, 1 /* INPAINT_TELEA */);
     dstRGBA = new cv.Mat(); cv.cvtColor(dstMat, dstRGBA, cv.COLOR_BGR2RGBA);
     return new ImageData(new Uint8ClampedArray(dstRGBA.data), w, h);
   } finally {
-    if(srcMat) srcMat.delete(); if(srcBGR) srcBGR.delete();
+    if(srcMat2) srcMat2.delete(); if(srcBGR) srcBGR.delete();
     if(dstMat) dstMat.delete(); if(dstRGBA) dstRGBA.delete();
   }
 }
@@ -595,90 +595,101 @@ function gradientFill(origData, maskData, w, h, mx1, my1, mx2, my2) {
 
 // ══════════════════════════════════════════════
 // SECTION 4 — WATERMARK DETECTION
-// Combines color-anomaly detection (catches semi-transparent watermarks)
-// with Canny edges (catches high-contrast logos) for maximum coverage.
+// Uses Canny edge detection + edge-density scoring.
+// Edge density distinguishes watermark text (dense strokes) from background
+// features like walls/doors (sparse edges).
+// Returns {mask, bx1, by1, bx2, by2} or null.
 // ══════════════════════════════════════════════
 function autoDetectWatermarkMask(srcMat, w, h) {
-  var gray=null, blurSm=null, blurBig=null, anomaly=null, edges=null;
-  var combined=null, dilKernel=null, dilated=null, contours=null, hierarchy=null, outputMask=null;
+  var gray=null, blurSm=null, edges=null, dilKernel=null, dilated=null;
+  var contours=null, hierarchy=null, outputMask=null;
   try {
     gray = new cv.Mat();
     cv.cvtColor(srcMat, gray, cv.COLOR_RGBA2GRAY);
 
-    // ── Method 1: Color anomaly (compare pixel to local background) ──
-    // A watermark adds color/brightness that differs from the surrounding background.
-    // Heavy blur gives us the "background without the watermark".
-    // absdiff finds pixels that don't match their surroundings → watermark pixels.
-    blurBig = new cv.Mat();
-    var ks = Math.max(41, Math.floor(Math.min(w,h) * 0.045)); if(ks%2===0)ks++;
-    cv.GaussianBlur(gray, blurBig, new cv.Size(ks, ks), 0);
-    anomaly = new cv.Mat();
-    cv.absdiff(gray, blurBig, anomaly);
-    cv.threshold(anomaly, anomaly, 10, 255, cv.THRESH_BINARY);
-
-    // ── Method 2: Canny edges (catches hard-edged logos) ──
     blurSm = new cv.Mat();
     cv.GaussianBlur(gray, blurSm, new cv.Size(3,3), 0);
     edges = new cv.Mat();
-    cv.Canny(blurSm, edges, 20, 70);
+    cv.Canny(blurSm, edges, 30, 90);
 
-    // Combine both methods
-    combined = new cv.Mat();
-    cv.bitwise_or(edges, anomaly, combined);
-
-    // Dilate to merge nearby marks into solid blobs
-    dilKernel = cv.Mat.ones(24, 24, cv.CV_8UC1);
+    // Dilate to merge individual text strokes into solid blobs
+    dilKernel = cv.Mat.ones(22, 22, cv.CV_8UC1);
     dilated = new cv.Mat();
-    cv.dilate(combined, dilated, dilKernel);
+    cv.dilate(edges, dilated, dilKernel);
 
     contours  = new cv.MatVector();
     hierarchy = new cv.Mat();
     cv.findContours(dilated, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
     var imgArea = w * h;
-    var bestScore = -1, bestRect = null;
+    // Pre-read edge pixel data for density counting
+    var edgesData = edges.data;
 
-    // Scoring zones: corner/edge placement gets bonus; center is valid too
+    // Zones: corner/bottom placement scores highest; center band is valid too
     var zones = [
-      [0,         0,         w*.42, h*.32],  // TL
-      [w*.58,     0,         w*.42, h*.32],  // TR
-      [0,         h*.68,     w*.42, h*.32],  // BL
-      [w*.58,     h*.68,     w*.42, h*.32],  // BR
-      [w*.12,     h*.62,     w*.76, h*.38],  // BC wide
-      [w*.05,     h*.18,     w*.90, h*.64],  // CENTER band
+      [0,       0,       w*.45, h*.35],  // TL
+      [w*.55,   0,       w*.45, h*.35],  // TR
+      [0,       h*.65,   w*.45, h*.35],  // BL
+      [w*.55,   h*.65,   w*.45, h*.35],  // BR
+      [w*.10,   h*.60,   w*.80, h*.40],  // BC wide
+      [w*.03,   h*.15,   w*.94, h*.70],  // CENTER band
     ];
-    var zw = [1.0, 1.0, 1.0, 1.0, 0.8, 0.6];
+    var zw = [1.0, 1.0, 1.0, 1.0, 0.85, 0.50];
+
+    var bestScore = -1, bestRect = null;
 
     for (var i = 0; i < contours.size(); i++) {
       var rect = cv.boundingRect(contours.get(i));
       var area = rect.width * rect.height;
-      if (area < imgArea * 0.001 || area > imgArea * 0.65) continue;
+      var relArea = area / imgArea;
+      if (relArea < 0.0006 || relArea > 0.55) continue;
+
+      // Count actual edge pixels inside this bounding rect (edge density)
+      var edgePx = 0;
+      var ry2 = Math.min(rect.y + rect.height, h);
+      var rx2 = Math.min(rect.x + rect.width,  w);
+      for (var ey = rect.y; ey < ry2; ey++) {
+        for (var ex = rect.x; ex < rx2; ex++) {
+          if (edgesData[ey * w + ex] > 128) edgePx++;
+        }
+      }
+      var density = edgePx / area;
+      // Watermark text: 3–40% density. Background features (walls, doors): <2%.
+      if (density < 0.025) continue;
 
       var zoneScore = 0;
-      zones.forEach(function(z, zi) {
-        var ix=Math.max(rect.x,z[0]), iy=Math.max(rect.y,z[1]);
-        var ix2=Math.min(rect.x+rect.width,z[0]+z[2]);
-        var iy2=Math.min(rect.y+rect.height,z[1]+z[3]);
-        if(ix2>ix && iy2>iy) zoneScore=Math.max(zoneScore, ((ix2-ix)*(iy2-iy)/area)*zw[zi]);
-      });
+      for (var zi = 0; zi < zones.length; zi++) {
+        var z = zones[zi];
+        var ix  = Math.max(rect.x, z[0]),   iy  = Math.max(rect.y, z[1]);
+        var ix2 = Math.min(rect.x + rect.width, z[0]+z[2]);
+        var iy2 = Math.min(rect.y + rect.height, z[1]+z[3]);
+        if (ix2 > ix && iy2 > iy) {
+          var ov = ((ix2-ix)*(iy2-iy) / area) * zw[zi];
+          if (ov > zoneScore) zoneScore = ov;
+        }
+      }
 
-      var aspect  = Math.min(rect.width / Math.max(rect.height,1), 12) / 12;
-      var relArea = area / imgArea;
-      var sizeFit = (relArea > 0.002 && relArea < 0.65) ? 1.0 : 0.2;
-      var score   = aspect * 0.40 + zoneScore * 0.40 + sizeFit * 0.20;
+      // Aspect: text watermarks are typically wider than tall
+      var aspect = rect.width / Math.max(rect.height, 1);
+      var aspectScore = Math.min(aspect / 5.0, 1.0);  // aspect=5 → 1.0, aspect=1 → 0.2
 
+      var sizeFit     = (relArea > 0.001 && relArea < 0.45) ? 1.0 : 0.3;
+      var densityScore = Math.min(density / 0.15, 1.0);  // 15% density = 1.0
+
+      var score = aspectScore * 0.25 + zoneScore * 0.35 + sizeFit * 0.20 + densityScore * 0.20;
       if (score > bestScore) { bestScore = score; bestRect = rect; }
     }
 
-    if (!bestRect || bestScore < 0.08) return null;
+    if (!bestRect || bestScore < 0.06) return null;
 
     // Expand bounding box 15% for safety
     var ex=Math.round(bestRect.width*0.15), ey=Math.round(bestRect.height*0.15);
-    var bx1=Math.max(0,bestRect.x-ex), by1=Math.max(0,bestRect.y-ey);
-    var bx2=Math.min(w,bestRect.x+bestRect.width+ex), by2=Math.min(h,bestRect.y+bestRect.height+ey);
+    var bx1=Math.max(0, bestRect.x-ex),              by1=Math.max(0, bestRect.y-ey);
+    var bx2=Math.min(w, bestRect.x+bestRect.width+ex), by2=Math.min(h, bestRect.y+bestRect.height+ey);
 
     outputMask = cv.Mat.zeros(h, w, cv.CV_8UC1);
     cv.rectangle(outputMask, new cv.Point(bx1,by1), new cv.Point(bx2,by2), new cv.Scalar(255), -1);
+    outputMask._detectedBox = {bx1:bx1, by1:by1, bx2:bx2, by2:by2};
     return outputMask;
 
   } catch(err) {
@@ -686,7 +697,7 @@ function autoDetectWatermarkMask(srcMat, w, h) {
     if(outputMask){ outputMask.delete(); outputMask=null; }
     return null;
   } finally {
-    [gray,blurSm,blurBig,anomaly,edges,combined,dilKernel,dilated,contours,hierarchy].forEach(function(m){ if(m) m.delete(); });
+    [gray,blurSm,edges,dilKernel,dilated,contours,hierarchy].forEach(function(m){ if(m) m.delete(); });
   }
 }
 
@@ -825,9 +836,20 @@ async function runAutoRemoveCurrent() {
 
     if(!maskMat){
       item.status='ready'; renderRemoveQueue();
-      toast('No watermark detected automatically. Use Manual Edit to paint it.','info');
+      toast('No watermark found — paint over it manually and click "Apply Removal"','info');
       setManualPanelOpen(true);
       return;
+    }
+
+    // Show detected region as orange outline on canvas before removal
+    if(maskMat._detectedBox){
+      var db=maskMat._detectedBox;
+      sourceCtx.save();
+      sourceCtx.strokeStyle='rgba(255,100,0,0.9)';
+      sourceCtx.lineWidth=Math.max(2, Math.round(W/600));
+      sourceCtx.setLineDash([6,4]);
+      sourceCtx.strokeRect(db.bx1, db.by1, db.bx2-db.bx1, db.by2-db.by1);
+      sourceCtx.restore();
     }
 
     btn.textContent='Removing…'; await yieldFrame();
