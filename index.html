@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prypco Watermark Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#0F172A;background:#F7F8FA}
+
+/* ── Loading overlay ── */
+#cv-loader{position:fixed;inset:0;background:#1E2235;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:20px}
+#cv-loader .spinner{width:48px;height:48px;border:4px solid rgba(255,255,255,.15);border-top-color:#F59E0B;border-radius:50%;animation:spin .8s linear infinite}
+#cv-loader p{color:#CBD5E1;font-size:15px;font-weight:500}
+#cv-loader .logo-text{font-size:28px;font-weight:700;color:#F59E0B;letter-spacing:-0.5px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── App shell ── */
+#app{display:none;flex-direction:column;height:100vh;overflow:hidden}
+
+/* ── Header ── */
+header{flex:0 0 56px;background:#1E2235;display:flex;align-items:center;padding:0 20px;gap:24px;box-shadow:0 1px 0 rgba(255,255,255,.06)}
+.logo{font-size:18px;font-weight:700;color:#F59E0B;letter-spacing:-0.3px;white-space:nowrap}
+.logo span{color:#fff;font-weight:400}
+.tab-bar{display:flex;gap:4px;margin-left:8px}
+.tab-btn{background:transparent;border:none;color:#94A3B8;padding:6px 16px;border-radius:6px;cursor:pointer;font-size:14px;font-weight:500;font-family:inherit;transition:all .15s;white-space:nowrap}
+.tab-btn:hover{color:#fff;background:rgba(255,255,255,.07)}
+.tab-btn.active{color:#fff;background:rgba(37,99,235,.35);box-shadow:inset 0 0 0 1px rgba(37,99,235,.5)}
+.header-spacer{flex:1}
+.header-tip{color:#64748B;font-size:12px}
+
+/* ── Tab panels ── */
+.tab-panel{flex:1;display:none;overflow:hidden}
+.tab-panel.active{display:flex}
+
+/* ── 3-column layout ── */
+.sidebar{width:220px;min-width:180px;background:#fff;border-right:1px solid #E2E8F0;display:flex;flex-direction:column;overflow:hidden}
+.canvas-area{flex:1;background:#E8EDF2;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.controls-panel{width:268px;min-width:240px;background:#fff;border-left:1px solid #E2E8F0;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden}
+
+/* ── Sidebar ── */
+.upload-zone{margin:12px;border:2px dashed #CBD5E1;border-radius:10px;padding:16px 10px;text-align:center;cursor:pointer;transition:all .15s;flex-shrink:0}
+.upload-zone:hover,.upload-zone.drag-over{border-color:#2563EB;background:#EFF6FF}
+.upload-zone .uz-icon{font-size:24px;margin-bottom:6px}
+.upload-zone p{color:#64748B;font-size:12px;line-height:1.4}
+.upload-zone strong{color:#2563EB;font-weight:600}
+.sidebar-label{padding:8px 12px 4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#94A3B8}
+.queue-list{flex:1;overflow-y:auto;padding:0 8px 8px}
+.queue-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;cursor:pointer;transition:background .1s;margin-bottom:2px}
+.queue-item:hover{background:#F1F5F9}
+.queue-item.active{background:#EFF6FF;box-shadow:inset 0 0 0 1px #BFDBFE}
+.qi-thumb{width:36px;height:36px;border-radius:5px;object-fit:cover;flex-shrink:0;background:#E2E8F0}
+.qi-info{flex:1;min-width:0}
+.qi-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#0F172A}
+.qi-status{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;margin-top:2px}
+.qi-status.pending{background:#F1F5F9;color:#64748B}
+.qi-status.editing{background:#FEF3C7;color:#92400E}
+.qi-status.processing{background:#FEF3C7;color:#B45309;animation:badge-pulse 1s ease-in-out infinite}
+.qi-status.done{background:#D1FAE5;color:#065F46}
+.qi-status.error{background:#FEE2E2;color:#991B1B}
+@keyframes badge-pulse{0%,100%{opacity:1}50%{opacity:.55}}
+.qi-del{background:none;border:none;cursor:pointer;color:#CBD5E1;font-size:14px;padding:2px;border-radius:3px;flex-shrink:0;line-height:1}
+.qi-del:hover{color:#EF4444;background:#FEE2E2}
+
+/* ── Canvas workspace ── */
+.canvas-wrap{position:relative;display:inline-block;box-shadow:0 4px 24px rgba(0,0,0,.18)}
+#source-canvas,#mask-canvas{display:block;max-width:100%;max-height:calc(100vh - 130px)}
+#mask-canvas{position:absolute;top:0;left:0;width:100%;height:100%;cursor:none}
+.brush-cursor{position:fixed;pointer-events:none;border:2px solid rgba(255,60,60,.8);border-radius:50%;transform:translate(-50%,-50%);z-index:100;display:none}
+
+.empty-canvas{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#94A3B8;text-align:center;padding:40px}
+.empty-canvas .ec-icon{font-size:48px;opacity:.4}
+.empty-canvas p{font-size:15px;font-weight:500}
+.empty-canvas small{font-size:12px;color:#CBD5E1}
+
+/* ── Controls panel ── */
+.cp-header{padding:16px 16px 12px;border-bottom:1px solid #F1F5F9;font-size:13px;font-weight:600;color:#0F172A}
+.cp-section{padding:14px 16px;border-bottom:1px solid #F1F5F9}
+.cp-section:last-child{border-bottom:none}
+.cp-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#94A3B8;margin-bottom:10px}
+.ctrl-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.ctrl-row:last-child{margin-bottom:0}
+.ctrl-label{font-size:12px;font-weight:500;color:#374151;white-space:nowrap}
+.ctrl-val{font-size:12px;font-weight:600;color:#2563EB;min-width:30px;text-align:right}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:2px;background:#E2E8F0;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#2563EB;cursor:pointer;box-shadow:0 1px 4px rgba(37,99,235,.4)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#2563EB;cursor:pointer;border:none}
+input[type=color]{-webkit-appearance:none;width:36px;height:28px;border:1px solid #E2E8F0;border-radius:5px;cursor:pointer;padding:2px;background:#fff}
+input[type=text],input[type=number]{width:100%;padding:7px 10px;border:1px solid #E2E8F0;border-radius:7px;font-size:13px;font-family:inherit;color:#0F172A;outline:none;transition:border-color .15s}
+input[type=text]:focus,input[type=number]:focus{border-color:#2563EB;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between}
+.toggle-label{font-size:12px;font-weight:500;color:#374151}
+.toggle-switch{position:relative;width:36px;height:20px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-track{position:absolute;inset:0;background:#CBD5E1;border-radius:10px;cursor:pointer;transition:background .2s}
+.toggle-track::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle-switch input:checked+.toggle-track{background:#2563EB}
+.toggle-switch input:checked+.toggle-track::after{transform:translateX(16px)}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;font-family:inherit;border:none;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-primary{background:#2563EB;color:#fff;width:100%}
+.btn-primary:hover{background:#1D4ED8}
+.btn-primary:disabled{background:#93C5FD;cursor:not-allowed}
+.btn-secondary{background:#F1F5F9;color:#374151;width:100%}
+.btn-secondary:hover{background:#E2E8F0}
+.btn-danger{background:#FEE2E2;color:#DC2626}
+.btn-danger:hover{background:#FECACA}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-group{display:flex;gap:6px}
+.btn-group .btn{flex:1}
+.btn-icon{width:32px;height:32px;padding:0;border-radius:7px}
+
+/* ── Before/After toggle ── */
+.ba-toggle{display:flex;border:1px solid #E2E8F0;border-radius:8px;overflow:hidden;margin-bottom:10px}
+.ba-btn{flex:1;padding:6px;background:#fff;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:#64748B;transition:all .15s}
+.ba-btn.active{background:#0F172A;color:#fff}
+
+/* ── Position grid ── */
+.pos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
+.pos-btn{aspect-ratio:1;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:5px;cursor:pointer;font-size:9px;font-weight:700;color:#94A3B8;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.pos-btn:hover{border-color:#2563EB;color:#2563EB;background:#EFF6FF}
+.pos-btn.active{background:#2563EB;border-color:#2563EB;color:#fff}
+
+/* ── Brush mode toggle ── */
+.brush-mode{display:flex;border:1px solid #E2E8F0;border-radius:7px;overflow:hidden;margin-bottom:10px}
+.bm-btn{flex:1;padding:6px;background:#fff;border:none;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:#64748B;transition:all .15s}
+.bm-btn.active{background:#EFF6FF;color:#2563EB}
+.bm-btn.active.erase{background:#FEF2F2;color:#DC2626}
+
+/* ── Progress bar ── */
+.progress-wrap{padding:0 16px 14px}
+.progress-bar{height:4px;background:#E2E8F0;border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:#2563EB;border-radius:2px;transition:width .3s;width:0%}
+.progress-label{font-size:11px;color:#64748B;margin-top:4px}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#94A3B8}
+
+/* ── Watermark preview canvas ── */
+#wm-preview-canvas{display:block;max-width:100%;max-height:calc(100vh - 130px);box-shadow:0 4px 24px rgba(0,0,0,.18)}
+
+/* ── Toast ── */
+.toast-wrap{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:10000;pointer-events:none}
+.toast{background:#0F172A;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,.3);opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:auto;max-width:320px}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{border-left:3px solid #10B981}
+.toast.error{border-left:3px solid #EF4444}
+.toast.info{border-left:3px solid #2563EB}
+
+/* ── Add tab format select ── */
+select{width:100%;padding:7px 10px;border:1px solid #E2E8F0;border-radius:7px;font-size:13px;font-family:inherit;color:#0F172A;background:#fff;outline:none;cursor:pointer}
+select:focus{border-color:#2563EB;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+</style>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div id="cv-loader">
+  <div class="logo-text">Prypco</div>
+  <div class="spinner"></div>
+  <p id="cv-loader-msg">Loading OpenCV.js…</p>
+</div>
+
+<!-- App shell -->
+<div id="app">
+  <header>
+    <div class="logo">Prypco <span>Watermark Portal</span></div>
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="remove">✂ Remove Watermark</button>
+      <button class="tab-btn" data-tab="add">✦ Add Prypco Watermark</button>
+    </div>
+    <div class="header-spacer"></div>
+    <span class="header-tip" id="header-tip"></span>
+  </header>
+
+  <!-- ═══════════════════════════════════════════
+       TAB: REMOVE WATERMARK
+  ═══════════════════════════════════════════ -->
+  <div class="tab-panel active" id="tab-remove">
+
+    <!-- Left sidebar -->
+    <div class="sidebar">
+      <div class="upload-zone" id="remove-upload-zone">
+        <div class="uz-icon">🖼</div>
+        <p><strong>Click or drag</strong> images here<br><small>JPG · PNG · WebP</small></p>
+        <input type="file" id="remove-file-input" accept="image/jpeg,image/png,image/webp" multiple style="display:none">
+      </div>
+      <div class="sidebar-label">Queue (<span id="remove-queue-count">0</span>)</div>
+      <div class="queue-list" id="remove-queue-list"></div>
+    </div>
+
+    <!-- Canvas area -->
+    <div class="canvas-area" id="remove-canvas-area">
+      <div class="empty-canvas" id="remove-empty">
+        <div class="ec-icon">🎨</div>
+        <p>Upload images to get started</p>
+        <small>Draw over the watermark, then click Remove</small>
+      </div>
+      <div class="canvas-wrap" id="remove-canvas-wrap" style="display:none">
+        <canvas id="source-canvas"></canvas>
+        <canvas id="mask-canvas"></canvas>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-panel">
+      <div class="cp-header">Removal Controls</div>
+
+      <div class="cp-section">
+        <div class="cp-title">Brush Tool</div>
+        <div class="brush-mode">
+          <button class="bm-btn active" id="brush-paint-btn">✏ Paint Mask</button>
+          <button class="bm-btn" id="brush-erase-btn">◻ Erase</button>
+        </div>
+        <div class="ctrl-row">
+          <span class="ctrl-label">Brush Size</span>
+          <span class="ctrl-val" id="brush-size-val">24px</span>
+        </div>
+        <input type="range" id="brush-size" min="4" max="120" value="24">
+      </div>
+
+      <div class="cp-section">
+        <div class="cp-title">Inpaint Settings</div>
+        <div class="ctrl-row">
+          <span class="ctrl-label">Radius</span>
+          <span class="ctrl-val" id="inpaint-radius-val">5</span>
+        </div>
+        <input type="range" id="inpaint-radius" min="1" max="30" value="5">
+        <div style="margin-top:10px" class="toggle-row">
+          <span class="toggle-label">Auto-advance queue</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="auto-advance">
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+      </div>
+
+      <div class="cp-section">
+        <div class="cp-title">Preview</div>
+        <div class="ba-toggle">
+          <button class="ba-btn active" id="ba-before-btn">Before</button>
+          <button class="ba-btn" id="ba-after-btn">After</button>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="clear-mask-btn" style="margin-bottom:8px">Clear Mask</button>
+      </div>
+
+      <div class="cp-section">
+        <div class="cp-title">Actions</div>
+        <button class="btn btn-primary" id="inpaint-btn" disabled style="margin-bottom:8px">
+          Remove Watermark
+        </button>
+        <button class="btn btn-secondary" id="remove-download-btn" disabled>
+          Download Result
+        </button>
+      </div>
+
+      <div class="cp-section" id="remove-batch-section" style="display:none">
+        <div class="cp-title">Batch Progress</div>
+        <div class="progress-wrap" style="padding:0">
+          <div class="progress-bar"><div class="progress-fill" id="remove-progress-fill"></div></div>
+          <div class="progress-label" id="remove-progress-label">0 / 0 done</div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /tab-remove -->
+
+  <!-- ═══════════════════════════════════════════
+       TAB: ADD PRYPCO WATERMARK
+  ═══════════════════════════════════════════ -->
+  <div class="tab-panel" id="tab-add">
+
+    <!-- Left sidebar -->
+    <div class="sidebar">
+      <div class="upload-zone" id="add-upload-zone">
+        <div class="uz-icon">🖼</div>
+        <p><strong>Click or drag</strong> images here<br><small>JPG · PNG · WebP · Bulk OK</small></p>
+        <input type="file" id="add-file-input" accept="image/jpeg,image/png,image/webp" multiple style="display:none">
+      </div>
+      <div class="sidebar-label">Queue (<span id="add-queue-count">0</span>)</div>
+      <div class="queue-list" id="add-queue-list"></div>
+    </div>
+
+    <!-- Canvas area -->
+    <div class="canvas-area" id="add-canvas-area">
+      <div class="empty-canvas" id="add-empty">
+        <div class="ec-icon">✦</div>
+        <p>Upload images to preview watermark</p>
+        <small>Adjust settings on the right — live preview updates instantly</small>
+      </div>
+      <canvas id="wm-preview-canvas" style="display:none"></canvas>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-panel">
+      <div class="cp-header">Watermark Settings</div>
+
+      <div class="cp-section">
+        <div class="cp-title">Text</div>
+        <input type="text" id="wm-text" value="Prypco" placeholder="Watermark text" style="margin-bottom:8px">
+        <div class="ctrl-row" style="margin-bottom:6px">
+          <span class="ctrl-label">Font Size</span>
+          <span class="ctrl-val" id="wm-fontsize-val">60</span>
+        </div>
+        <input type="range" id="wm-fontsize" min="10" max="300" value="60">
+      </div>
+
+      <div class="cp-section">
+        <div class="cp-title">Style</div>
+        <div class="ctrl-row">
+          <span class="ctrl-label">Color</span>
+          <input type="color" id="wm-color" value="#ffffff">
+        </div>
+        <div class="ctrl-row">
+          <span class="ctrl-label">Opacity</span>
+          <span class="ctrl-val" id="wm-opacity-val">40%</span>
+        </div>
+        <input type="range" id="wm-opacity" min="1" max="100" value="40" style="margin-bottom:10px">
+        <div class="ctrl-row">
+          <span class="ctrl-label">Rotation</span>
+          <span class="ctrl-val" id="wm-rotation-val">-30°</span>
+        </div>
+        <input type="range" id="wm-rotation" min="-180" max="180" value="-30">
+      </div>
+
+      <div class="cp-section">
+        <div class="cp-title">Position</div>
+        <div class="pos-grid" id="pos-grid">
+          <button class="pos-btn" data-pos="TL">↖</button>
+          <button class="pos-btn" data-pos="TC">↑</button>
+          <button class="pos-btn" data-pos="TR">↗</button>
+          <button class="pos-btn" data-pos="CL">←</button>
+          <button class="pos-btn" data-pos="CC">+</button>
+          <button class="pos-btn" data-pos="CR">→</button>
+          <button class="pos-btn active" data-pos="BR">↘</button>
+          <button class="pos-btn" data-pos="BC">↓</button>
+          <button class="pos-btn" data-pos="BL">↙</button>
+        </div>
+        <div class="toggle-row" style="margin-top:10px">
+          <span class="toggle-label">Tiled pattern</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="wm-tiled">
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+      </div>
+
+      <div class="cp-section">
+        <div class="cp-title">Output Format</div>
+        <select id="wm-output-format">
+          <option value="same">Same as input</option>
+          <option value="image/jpeg">JPEG</option>
+          <option value="image/png">PNG</option>
+          <option value="image/webp">WebP</option>
+        </select>
+      </div>
+
+      <div class="cp-section">
+        <div class="cp-title">Export</div>
+        <button class="btn btn-primary" id="apply-wm-btn" disabled style="margin-bottom:8px">
+          Apply &amp; Download
+        </button>
+        <div class="progress-wrap" style="padding:0;display:none" id="add-progress-wrap">
+          <div class="progress-bar"><div class="progress-fill" id="add-progress-fill"></div></div>
+          <div class="progress-label" id="add-progress-label">0 / 0 done</div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /tab-add -->
+</div><!-- /app -->
+
+<!-- Brush cursor -->
+<div class="brush-cursor" id="brush-cursor"></div>
+
+<!-- Toast container -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<!-- ═══════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════ -->
+<script>
+// ── Must be defined BEFORE opencv.js loads ──
+window.Module = {
+  onRuntimeInitialized: function() {
+    document.getElementById('cv-loader-msg').textContent = 'Ready!';
+    setTimeout(function() {
+      document.getElementById('cv-loader').style.display = 'none';
+      var app = document.getElementById('app');
+      app.style.display = 'flex';
+      initApp();
+    }, 300);
+  }
+};
+</script>
+<script async src="https://docs.opencv.org/4.8.0/opencv.js" onerror="cvLoadError()"></script>
+<script>
+function cvLoadError() {
+  document.getElementById('cv-loader-msg').textContent = 'Failed to load OpenCV. Check your internet connection.';
+  document.getElementById('cv-loader').querySelector('.spinner').style.display = 'none';
+}
+
+// ══════════════════════════════════════════════
+// SECTION 1 — STATE
+// ══════════════════════════════════════════════
+const State = {
+  // Remove tab
+  removeQueue: [],      // [{file, thumb, origData, maskData, resultData, status}]
+  removeActive: -1,
+  brushMode: 'paint',   // 'paint' | 'erase'
+  brushSize: 24,
+  inpaintRadius: 5,
+  viewMode: 'before',   // 'before' | 'after'
+  isDrawing: false,
+  lastX: 0, lastY: 0,
+
+  // Add tab
+  addQueue: [],         // [{file, thumb, status}]
+  addActive: -1,
+  wm: {
+    text: 'Prypco',
+    fontSize: 60,
+    opacity: 0.4,
+    color: '#ffffff',
+    rotation: -30,
+    position: 'BR',
+    tiled: false,
+    outputFormat: 'same',
+  },
+};
+
+// ══════════════════════════════════════════════
+// SECTION 2 — SHARED UTILITIES
+// ══════════════════════════════════════════════
+
+function fileToImageData(file) {
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var c = document.createElement('canvas');
+        c.width = img.naturalWidth;
+        c.height = img.naturalHeight;
+        c.getContext('2d').drawImage(img, 0, 0);
+        resolve({ canvas: c, imageData: c.getContext('2d').getImageData(0, 0, c.width, c.height), width: c.width, height: c.height });
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function makeThumbnail(file) {
+  return new Promise(function(resolve) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var c = document.createElement('canvas');
+        var size = 36;
+        var ratio = img.naturalWidth / img.naturalHeight;
+        c.width = ratio >= 1 ? size : size * ratio;
+        c.height = ratio >= 1 ? size / ratio : size;
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL('image/jpeg', 0.7));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function canvasToBlob(canvas, mimeType, quality) {
+  return new Promise(function(resolve) {
+    quality = quality || 0.92;
+    // Safari WebP fallback
+    if (mimeType === 'image/webp' && canvas.toDataURL('image/webp').indexOf('data:image/webp') !== 0) {
+      mimeType = 'image/png';
+    }
+    canvas.toBlob(function(blob) { resolve(blob); }, mimeType, quality);
+  });
+}
+
+function outputMime(item) {
+  var fmt = State.wm.outputFormat;
+  if (fmt === 'same') return item.file.type || 'image/png';
+  return fmt;
+}
+
+function extForMime(mime) {
+  var m = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+  return m[mime] || 'png';
+}
+
+function stripExt(name) {
+  return name.replace(/\.[^.]+$/, '');
+}
+
+// ── Toast notifications ──
+function toast(msg, type) {
+  type = type || 'info';
+  var wrap = document.getElementById('toast-wrap');
+  var el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  wrap.appendChild(el);
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() { el.classList.add('show'); });
+  });
+  setTimeout(function() {
+    el.classList.remove('show');
+    setTimeout(function() { el.remove(); }, 300);
+  }, 3200);
+}
+
+// ══════════════════════════════════════════════
+// SECTION 3 — REMOVE WATERMARK MODULE
+// ══════════════════════════════════════════════
+
+var sourceCanvas = document.getElementById('source-canvas');
+var maskCanvas   = document.getElementById('mask-canvas');
+var sourceCtx    = sourceCanvas.getContext('2d');
+var maskCtx      = maskCanvas.getContext('2d');
+var brushCursor  = document.getElementById('brush-cursor');
+
+function initRemoveTab() {
+  var zone = document.getElementById('remove-upload-zone');
+  var inp  = document.getElementById('remove-file-input');
+
+  zone.addEventListener('click', function() { inp.click(); });
+  inp.addEventListener('change', function() { addRemoveFiles(Array.from(inp.files)); inp.value=''; });
+
+  zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', function() { zone.classList.remove('drag-over'); });
+  zone.addEventListener('drop', function(e) {
+    e.preventDefault(); zone.classList.remove('drag-over');
+    var files = Array.from(e.dataTransfer.files).filter(function(f){ return f.type.startsWith('image/'); });
+    addRemoveFiles(files);
+  });
+
+  // Brush events
+  maskCanvas.addEventListener('mousedown', brushStart);
+  maskCanvas.addEventListener('mousemove', brushMove);
+  maskCanvas.addEventListener('mouseup',   brushEnd);
+  maskCanvas.addEventListener('mouseleave',brushEnd);
+  maskCanvas.addEventListener('touchstart', function(e){ e.preventDefault(); brushStart(e.touches[0]); }, {passive:false});
+  maskCanvas.addEventListener('touchmove',  function(e){ e.preventDefault(); brushMove(e.touches[0]); }, {passive:false});
+  maskCanvas.addEventListener('touchend',   brushEnd, {passive:false});
+
+  // Cursor tracking for canvas area
+  document.addEventListener('mousemove', function(e) {
+    if (maskCanvas.style.display !== 'none' && document.getElementById('remove-canvas-wrap').style.display !== 'none') {
+      brushCursor.style.left = e.clientX + 'px';
+      brushCursor.style.top  = e.clientY + 'px';
+    }
+  });
+
+  document.getElementById('brush-size').addEventListener('input', function() {
+    State.brushSize = parseInt(this.value);
+    document.getElementById('brush-size-val').textContent = this.value + 'px';
+    updateBrushCursor();
+  });
+  document.getElementById('inpaint-radius').addEventListener('input', function() {
+    State.inpaintRadius = parseInt(this.value);
+    document.getElementById('inpaint-radius-val').textContent = this.value;
+  });
+  document.getElementById('brush-paint-btn').addEventListener('click', function() {
+    State.brushMode = 'paint';
+    this.classList.add('active');
+    document.getElementById('brush-erase-btn').classList.remove('active');
+    document.getElementById('brush-erase-btn').classList.remove('erase');
+  });
+  document.getElementById('brush-erase-btn').addEventListener('click', function() {
+    State.brushMode = 'erase';
+    this.classList.add('active', 'erase');
+    document.getElementById('brush-paint-btn').classList.remove('active');
+  });
+  document.getElementById('clear-mask-btn').addEventListener('click', clearMask);
+  document.getElementById('inpaint-btn').addEventListener('click', runInpaint);
+  document.getElementById('remove-download-btn').addEventListener('click', downloadRemoveResult);
+  document.getElementById('ba-before-btn').addEventListener('click', function() {
+    State.viewMode = 'before';
+    this.classList.add('active');
+    document.getElementById('ba-after-btn').classList.remove('active');
+    refreshSourceCanvas();
+  });
+  document.getElementById('ba-after-btn').addEventListener('click', function() {
+    State.viewMode = 'after';
+    this.classList.add('active');
+    document.getElementById('ba-before-btn').classList.remove('active');
+    refreshSourceCanvas();
+  });
+}
+
+function updateBrushCursor() {
+  var sz = State.brushSize * 2;
+  brushCursor.style.width  = sz + 'px';
+  brushCursor.style.height = sz + 'px';
+}
+
+function canvasCoords(e) {
+  var rect   = maskCanvas.getBoundingClientRect();
+  var scaleX = maskCanvas.width  / rect.width;
+  var scaleY = maskCanvas.height / rect.height;
+  return {
+    x: (e.clientX - rect.left) * scaleX,
+    y: (e.clientY - rect.top)  * scaleY,
+  };
+}
+
+function brushStart(e) {
+  State.isDrawing = true;
+  var p = canvasCoords(e);
+  State.lastX = p.x; State.lastY = p.y;
+  brushDraw(p.x, p.y);
+  brushCursor.style.display = 'block';
+  updateBrushCursor();
+}
+function brushEnd() {
+  State.isDrawing = false;
+  brushCursor.style.display = 'none';
+}
+function brushMove(e) {
+  var p = canvasCoords(e);
+  brushCursor.style.left = e.clientX + 'px';
+  brushCursor.style.top  = e.clientY + 'px';
+  brushCursor.style.display = 'block';
+  if (!State.isDrawing) return;
+  // Draw line between last and current point for smooth strokes
+  var dx = p.x - State.lastX, dy = p.y - State.lastY;
+  var dist = Math.sqrt(dx*dx + dy*dy);
+  var steps = Math.max(1, Math.floor(dist / (State.brushSize * 0.3)));
+  for (var i = 0; i <= steps; i++) {
+    brushDraw(State.lastX + dx * (i/steps), State.lastY + dy * (i/steps));
+  }
+  State.lastX = p.x; State.lastY = p.y;
+}
+function brushDraw(x, y) {
+  if (State.brushMode === 'erase') {
+    maskCtx.globalCompositeOperation = 'destination-out';
+    maskCtx.beginPath();
+    maskCtx.arc(x, y, State.brushSize, 0, Math.PI * 2);
+    maskCtx.fillStyle = 'rgba(0,0,0,1)';
+    maskCtx.fill();
+    maskCtx.globalCompositeOperation = 'source-over';
+  } else {
+    maskCtx.globalCompositeOperation = 'source-over';
+    maskCtx.beginPath();
+    maskCtx.arc(x, y, State.brushSize, 0, Math.PI * 2);
+    maskCtx.fillStyle = 'rgba(255, 50, 50, 0.55)';
+    maskCtx.fill();
+  }
+}
+function clearMask() {
+  maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+  if (State.removeActive >= 0) State.removeQueue[State.removeActive].maskData = null;
+}
+
+async function addRemoveFiles(files) {
+  if (!files.length) return;
+  for (var i = 0; i < files.length; i++) {
+    var thumb = await makeThumbnail(files[i]);
+    State.removeQueue.push({ file: files[i], thumb: thumb, origData: null, maskData: null, resultData: null, status: 'pending' });
+  }
+  renderRemoveQueue();
+  if (State.removeActive < 0) loadRemoveItem(0);
+  document.getElementById('remove-batch-section').style.display = State.removeQueue.length > 1 ? '' : 'none';
+}
+
+function renderRemoveQueue() {
+  var list = document.getElementById('remove-queue-list');
+  document.getElementById('remove-queue-count').textContent = State.removeQueue.length;
+  list.innerHTML = '';
+  State.removeQueue.forEach(function(item, idx) {
+    var li = document.createElement('div');
+    li.className = 'queue-item' + (idx === State.removeActive ? ' active' : '');
+    li.innerHTML =
+      '<img class="qi-thumb" src="' + item.thumb + '" alt="">' +
+      '<div class="qi-info">' +
+        '<div class="qi-name">' + escHtml(item.file.name) + '</div>' +
+        '<span class="qi-status ' + item.status + '">' + item.status + '</span>' +
+      '</div>' +
+      '<button class="qi-del" data-idx="' + idx + '" title="Remove from queue">✕</button>';
+    li.querySelector('.qi-thumb').addEventListener('click', function(){ loadRemoveItem(idx); });
+    li.querySelector('.qi-info').addEventListener('click', function(){ loadRemoveItem(idx); });
+    li.querySelector('.qi-del').addEventListener('click', function(e){
+      e.stopPropagation();
+      removeFromRemoveQueue(parseInt(e.currentTarget.dataset.idx));
+    });
+    list.appendChild(li);
+  });
+}
+
+function removeFromRemoveQueue(idx) {
+  State.removeQueue.splice(idx, 1);
+  if (State.removeActive === idx) {
+    State.removeActive = -1;
+    if (State.removeQueue.length > 0) loadRemoveItem(Math.min(idx, State.removeQueue.length - 1));
+    else showRemoveEmpty();
+  } else if (State.removeActive > idx) {
+    State.removeActive--;
+  }
+  renderRemoveQueue();
+}
+
+function showRemoveEmpty() {
+  document.getElementById('remove-empty').style.display = '';
+  document.getElementById('remove-canvas-wrap').style.display = 'none';
+  document.getElementById('inpaint-btn').disabled = true;
+  document.getElementById('remove-download-btn').disabled = true;
+}
+
+async function loadRemoveItem(idx) {
+  if (idx < 0 || idx >= State.removeQueue.length) return;
+  // Save current mask
+  if (State.removeActive >= 0 && State.removeActive < State.removeQueue.length) {
+    State.removeQueue[State.removeActive].maskData = maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
+  }
+  State.removeActive = idx;
+  var item = State.removeQueue[idx];
+  item.status = 'editing';
+
+  document.getElementById('remove-empty').style.display = 'none';
+  document.getElementById('remove-canvas-wrap').style.display = '';
+
+  if (!item.origData) {
+    var res = await fileToImageData(item.file);
+    item.origData = res.imageData;
+    item.origWidth = res.width;
+    item.origHeight = res.height;
+  }
+
+  sourceCanvas.width  = item.origWidth;
+  sourceCanvas.height = item.origHeight;
+  maskCanvas.width    = item.origWidth;
+  maskCanvas.height   = item.origHeight;
+
+  refreshSourceCanvas();
+
+  // Restore saved mask or clear
+  maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+  if (item.maskData) maskCtx.putImageData(item.maskData, 0, 0);
+
+  document.getElementById('inpaint-btn').disabled = false;
+  document.getElementById('remove-download-btn').disabled = !item.resultData;
+
+  // Reset view mode
+  State.viewMode = 'before';
+  document.getElementById('ba-before-btn').classList.add('active');
+  document.getElementById('ba-after-btn').classList.remove('active');
+
+  renderRemoveQueue();
+}
+
+function refreshSourceCanvas() {
+  var item = State.removeActive >= 0 ? State.removeQueue[State.removeActive] : null;
+  if (!item) return;
+  var data = (State.viewMode === 'after' && item.resultData) ? item.resultData : item.origData;
+  if (data) sourceCtx.putImageData(data, 0, 0);
+}
+
+async function runInpaint() {
+  var idx = State.removeActive;
+  if (idx < 0) return;
+  var item = State.removeQueue[idx];
+
+  // Save mask before inpainting
+  item.maskData = maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
+
+  var maskPx = item.maskData.data;
+  var w = maskCanvas.width, h = maskCanvas.height;
+
+  // Check if any mask is drawn
+  var hasMask = false;
+  for (var i = 3; i < maskPx.length; i += 4) { if (maskPx[i] > 10) { hasMask = true; break; } }
+  if (!hasMask) { toast('Draw on the watermark area first!', 'error'); return; }
+
+  item.status = 'processing';
+  renderRemoveQueue();
+  document.getElementById('inpaint-btn').disabled = true;
+  document.getElementById('inpaint-btn').textContent = 'Processing…';
+
+  // Yield to let UI update
+  await new Promise(function(r){ setTimeout(r, 30); });
+
+  var srcMat = null, srcBGR = null, maskMat = null, dstMat = null, dstRGBA = null;
+  try {
+    srcMat = cv.matFromImageData(item.origData);
+    srcBGR = new cv.Mat();
+    cv.cvtColor(srcMat, srcBGR, cv.COLOR_RGBA2BGR);
+
+    // Build binary mask
+    var binaryMask = new Uint8Array(w * h);
+    for (var i2 = 0; i2 < w * h; i2++) {
+      binaryMask[i2] = maskPx[i2 * 4 + 3] > 10 ? 255 : 0;
+    }
+    maskMat = new cv.Mat(h, w, cv.CV_8UC1);
+    maskMat.data.set(binaryMask);
+
+    // Dilate mask slightly for cleaner edges
+    var kernel = cv.Mat.ones(3, 3, cv.CV_8UC1);
+    var dilatedMask = new cv.Mat();
+    cv.dilate(maskMat, dilatedMask, kernel);
+    kernel.delete();
+
+    dstMat = new cv.Mat();
+    cv.inpaint(srcBGR, dilatedMask, dstMat, State.inpaintRadius, cv.INPAINT_TELEA);
+    dilatedMask.delete();
+
+    dstRGBA = new cv.Mat();
+    cv.cvtColor(dstMat, dstRGBA, cv.COLOR_BGR2RGBA);
+
+    item.resultData = new ImageData(new Uint8ClampedArray(dstRGBA.data), w, h);
+    item.status = 'done';
+    toast('Watermark removed!', 'success');
+
+    // Show result
+    State.viewMode = 'after';
+    document.getElementById('ba-after-btn').classList.add('active');
+    document.getElementById('ba-before-btn').classList.remove('active');
+    refreshSourceCanvas();
+    document.getElementById('remove-download-btn').disabled = false;
+
+  } catch(err) {
+    item.status = 'error';
+    toast('Inpainting failed: ' + err.message, 'error');
+    console.error(err);
+  } finally {
+    if (srcMat)  srcMat.delete();
+    if (srcBGR)  srcBGR.delete();
+    if (maskMat) maskMat.delete();
+    if (dstMat)  dstMat.delete();
+    if (dstRGBA) dstRGBA.delete();
+  }
+
+  document.getElementById('inpaint-btn').disabled = false;
+  document.getElementById('inpaint-btn').textContent = 'Remove Watermark';
+  renderRemoveQueue();
+
+  // Auto-advance
+  if (document.getElementById('auto-advance').checked) {
+    var next = idx + 1;
+    if (next < State.removeQueue.length) setTimeout(function(){ loadRemoveItem(next); }, 400);
+  }
+}
+
+async function downloadRemoveResult() {
+  var item = State.removeActive >= 0 ? State.removeQueue[State.removeActive] : null;
+  if (!item || !item.resultData) return;
+  var c = document.createElement('canvas');
+  c.width = item.origWidth; c.height = item.origHeight;
+  c.getContext('2d').putImageData(item.resultData, 0, 0);
+  var mime = item.file.type || 'image/png';
+  var blob = await canvasToBlob(c, mime);
+  saveAs(blob, 'removed_' + item.file.name);
+  toast('Downloaded!', 'success');
+}
+
+// ══════════════════════════════════════════════
+// SECTION 4 — ADD WATERMARK MODULE
+// ══════════════════════════════════════════════
+
+var wmPreviewCanvas = document.getElementById('wm-preview-canvas');
+var wmPreviewCtx    = wmPreviewCanvas.getContext('2d');
+var wmDebounce      = null;
+
+function initAddTab() {
+  var zone = document.getElementById('add-upload-zone');
+  var inp  = document.getElementById('add-file-input');
+
+  zone.addEventListener('click', function() { inp.click(); });
+  inp.addEventListener('change', function() { addWmFiles(Array.from(inp.files)); inp.value=''; });
+  zone.addEventListener('dragover', function(e){ e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', function(){ zone.classList.remove('drag-over'); });
+  zone.addEventListener('drop', function(e){
+    e.preventDefault(); zone.classList.remove('drag-over');
+    var files = Array.from(e.dataTransfer.files).filter(function(f){ return f.type.startsWith('image/'); });
+    addWmFiles(files);
+  });
+
+  // Wire controls
+  document.getElementById('wm-text').addEventListener('input', function(){ State.wm.text = this.value; schedulePreview(); });
+  document.getElementById('wm-fontsize').addEventListener('input', function(){
+    State.wm.fontSize = parseInt(this.value);
+    document.getElementById('wm-fontsize-val').textContent = this.value;
+    schedulePreview();
+  });
+  document.getElementById('wm-color').addEventListener('input', function(){ State.wm.color = this.value; schedulePreview(); });
+  document.getElementById('wm-opacity').addEventListener('input', function(){
+    State.wm.opacity = parseInt(this.value) / 100;
+    document.getElementById('wm-opacity-val').textContent = this.value + '%';
+    schedulePreview();
+  });
+  document.getElementById('wm-rotation').addEventListener('input', function(){
+    State.wm.rotation = parseInt(this.value);
+    document.getElementById('wm-rotation-val').textContent = this.value + '°';
+    schedulePreview();
+  });
+  document.getElementById('wm-tiled').addEventListener('change', function(){ State.wm.tiled = this.checked; schedulePreview(); });
+  document.getElementById('wm-output-format').addEventListener('change', function(){ State.wm.outputFormat = this.value; });
+
+  document.querySelectorAll('.pos-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.pos-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      State.wm.position = btn.dataset.pos;
+      schedulePreview();
+    });
+  });
+
+  document.getElementById('apply-wm-btn').addEventListener('click', applyWatermarkAll);
+}
+
+function schedulePreview() {
+  clearTimeout(wmDebounce);
+  wmDebounce = setTimeout(renderWmPreview, 80);
+}
+
+async function addWmFiles(files) {
+  if (!files.length) return;
+  for (var i = 0; i < files.length; i++) {
+    var thumb = await makeThumbnail(files[i]);
+    State.addQueue.push({ file: files[i], thumb: thumb, status: 'pending' });
+  }
+  renderAddQueue();
+  if (State.addActive < 0) {
+    State.addActive = 0;
+    renderWmPreview();
+  }
+  document.getElementById('apply-wm-btn').disabled = false;
+}
+
+function renderAddQueue() {
+  var list = document.getElementById('add-queue-list');
+  document.getElementById('add-queue-count').textContent = State.addQueue.length;
+  list.innerHTML = '';
+  State.addQueue.forEach(function(item, idx) {
+    var li = document.createElement('div');
+    li.className = 'queue-item' + (idx === State.addActive ? ' active' : '');
+    li.innerHTML =
+      '<img class="qi-thumb" src="' + item.thumb + '" alt="">' +
+      '<div class="qi-info">' +
+        '<div class="qi-name">' + escHtml(item.file.name) + '</div>' +
+        '<span class="qi-status ' + item.status + '">' + item.status + '</span>' +
+      '</div>' +
+      '<button class="qi-del" data-idx="' + idx + '" title="Remove">✕</button>';
+    li.querySelector('.qi-thumb').addEventListener('click', function(){ setAddActive(idx); });
+    li.querySelector('.qi-info').addEventListener('click', function(){ setAddActive(idx); });
+    li.querySelector('.qi-del').addEventListener('click', function(e){
+      e.stopPropagation();
+      var i2 = parseInt(e.currentTarget.dataset.idx);
+      State.addQueue.splice(i2, 1);
+      if (State.addActive >= State.addQueue.length) State.addActive = State.addQueue.length - 1;
+      renderAddQueue();
+      if (State.addQueue.length === 0) {
+        document.getElementById('add-empty').style.display = '';
+        wmPreviewCanvas.style.display = 'none';
+        document.getElementById('apply-wm-btn').disabled = true;
+      } else {
+        renderWmPreview();
+      }
+    });
+    list.appendChild(li);
+  });
+}
+
+function setAddActive(idx) {
+  State.addActive = idx;
+  renderAddQueue();
+  renderWmPreview();
+}
+
+async function renderWmPreview() {
+  if (State.addActive < 0 || State.addActive >= State.addQueue.length) return;
+  var item = State.addQueue[State.addActive];
+  var res = await fileToImageData(item.file);
+
+  wmPreviewCanvas.width  = res.width;
+  wmPreviewCanvas.height = res.height;
+  wmPreviewCtx.putImageData(res.imageData, 0, 0);
+  drawWatermark(wmPreviewCtx, res.width, res.height, State.wm);
+
+  document.getElementById('add-empty').style.display = 'none';
+  wmPreviewCanvas.style.display = 'block';
+}
+
+function drawWatermark(ctx, imgW, imgH, s) {
+  ctx.save();
+  ctx.globalAlpha = s.opacity;
+  ctx.fillStyle   = s.color;
+  var fontSize = Math.max(10, s.fontSize);
+  ctx.font        = 'bold ' + fontSize + 'px Inter, Arial, sans-serif';
+  ctx.textBaseline = 'middle';
+
+  if (s.tiled) {
+    var spacing = fontSize * 5;
+    // Tile over a rotated grid
+    ctx.translate(imgW / 2, imgH / 2);
+    ctx.rotate(s.rotation * Math.PI / 180);
+    ctx.translate(-imgW / 2, -imgH / 2);
+    var metrics = ctx.measureText(s.text);
+    var tw = metrics.width;
+    for (var y = -imgH; y < imgH * 2; y += spacing) {
+      for (var x = -imgW; x < imgW * 2; x += spacing + tw) {
+        ctx.fillText(s.text, x, y);
+      }
+    }
+  } else {
+    var metrics2 = ctx.measureText(s.text);
+    var tw2 = metrics2.width;
+    var th2 = fontSize;
+    var pad = Math.max(16, imgW * 0.02);
+    var coords = getWmCoords(s.position, imgW, imgH, tw2, th2, pad);
+    ctx.translate(coords.x + tw2 / 2, coords.y);
+    ctx.rotate(s.rotation * Math.PI / 180);
+    ctx.fillText(s.text, -tw2 / 2, 0);
+  }
+  ctx.restore();
+}
+
+function getWmCoords(pos, W, H, tW, tH, pad) {
+  var xKey = pos[1]; // L, C, R  (pos = "TL", "CC", "BR" etc)
+  var yKey = pos[0]; // T, C, B
+  var xMap = { L: pad, C: (W - tW) / 2, R: W - tW - pad };
+  var yMap = { T: pad + tH / 2, C: H / 2, B: H - pad - tH / 2 };
+  return { x: xMap[xKey] || pad, y: yMap[yKey] || pad };
+}
+
+async function applyWatermarkAll() {
+  if (!State.addQueue.length) return;
+  var btn = document.getElementById('apply-wm-btn');
+  btn.disabled = true;
+  btn.textContent = 'Processing…';
+
+  var progressWrap = document.getElementById('add-progress-wrap');
+  var progressFill = document.getElementById('add-progress-fill');
+  var progressLabel= document.getElementById('add-progress-label');
+  progressWrap.style.display = '';
+
+  var total = State.addQueue.length;
+  var isSingle = total === 1;
+  var zip = isSingle ? null : new JSZip();
+
+  for (var i = 0; i < total; i++) {
+    var item = State.addQueue[i];
+    item.status = 'processing';
+    renderAddQueue();
+    progressLabel.textContent = i + ' / ' + total + ' done';
+    progressFill.style.width = (i / total * 100) + '%';
+
+    await new Promise(function(r){ setTimeout(r, 10); }); // yield UI
+
+    try {
+      var res = await fileToImageData(item.file);
+      var offscreen = document.createElement('canvas');
+      offscreen.width  = res.width;
+      offscreen.height = res.height;
+      var ctx = offscreen.getContext('2d');
+      ctx.putImageData(res.imageData, 0, 0);
+      drawWatermark(ctx, res.width, res.height, State.wm);
+
+      var mime = outputMime(item);
+      var blob = await canvasToBlob(offscreen, mime);
+      var ext  = extForMime(mime);
+      var fname = stripExt(item.file.name) + '_watermarked.' + ext;
+
+      if (isSingle) {
+        saveAs(blob, fname);
+      } else {
+        zip.file(fname, blob);
+      }
+      item.status = 'done';
+    } catch(err) {
+      item.status = 'error';
+      console.error(err);
+    }
+    renderAddQueue();
+  }
+
+  progressFill.style.width = '100%';
+  progressLabel.textContent = total + ' / ' + total + ' done';
+
+  if (!isSingle) {
+    try {
+      var zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 3 } });
+      saveAs(zipBlob, 'prypco_watermarked.zip');
+      toast('ZIP downloaded — ' + total + ' images', 'success');
+    } catch(e) {
+      toast('ZIP creation failed: ' + e.message, 'error');
+    }
+  } else {
+    toast('Image downloaded!', 'success');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Apply & Download';
+  setTimeout(function(){ progressWrap.style.display = 'none'; }, 3000);
+}
+
+// ══════════════════════════════════════════════
+// SECTION 5 — APP INIT & TAB SWITCHING
+// ══════════════════════════════════════════════
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function initApp() {
+  initRemoveTab();
+  initAddTab();
+
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+      document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  document.getElementById('header-tip').textContent = 'Tip: Use a larger brush radius for faster processing';
+
+  // Enter/leave canvas for brush cursor
+  var wrap = document.getElementById('remove-canvas-wrap');
+  wrap.addEventListener('mouseenter', function(){ brushCursor.style.display='block'; updateBrushCursor(); });
+  wrap.addEventListener('mouseleave', function(){ brushCursor.style.display='none'; });
+}
+</script>
+</body>
+</html>
