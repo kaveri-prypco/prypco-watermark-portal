@@ -495,14 +495,17 @@ async function getLaMaSession() {
     try {
       ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.17.3/dist/';
       ort.env.wasm.numThreads = 1;
+      toast('Downloading AI model (~200MB). This takes 1–2 min on first use, cached after that.','info');
       _lamaSession = await ort.InferenceSession.create(
         'https://huggingface.co/Carve/LaMa-ONNX/resolve/main/lama_fp32.onnx',
         { executionProviders: ['wasm'] }
       );
+      toast('AI model ready!','success');
       return _lamaSession;
     } catch(e) {
       _lamaLoadPromise = null;
-      throw new Error('Failed to load AI model: ' + e.message);
+      console.error('LaMa load error:', e);
+      throw new Error('AI model failed to load: ' + e.message);
     }
   })();
   return await _lamaLoadPromise;
@@ -653,8 +656,8 @@ function autoDetectWatermarkMask(srcMat, w, h) {
     cv.findContours(dilated, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
 
     var imgArea = w * h;
-    // Pre-read edge pixel data for density counting
-    var edgesData = edges.data;
+    // Use combined (anomaly+Canny) for density — catches semi-transparent watermarks
+    var edgesData = combined.data;
 
     // Zones: corner/bottom placement scores highest; center band is valid too
     var zones = [
@@ -685,8 +688,8 @@ function autoDetectWatermarkMask(srcMat, w, h) {
         }
       }
       var density = edgePx / area;
-      // Watermark text: 3–40% density. Background features (walls, doors): <2%.
-      if (density < 0.025) continue;
+      // Combined map: watermarks typically 1.5%+. Plain walls/sky: <1%.
+      if (density < 0.015) continue;
 
       var zoneScore = 0;
       for (var zi = 0; zi < zones.length; zi++) {
@@ -867,8 +870,9 @@ async function runAutoRemoveCurrent() {
 
     if(!maskMat){
       item.status='ready'; renderRemoveQueue();
-      toast('No watermark found — paint over it manually and click "Apply Removal"','info');
+      toast('Auto-detect found nothing. Paint over the watermark manually, then click "Apply Removal".','info');
       setManualPanelOpen(true);
+      btn.disabled=false; btn.textContent='▶ Remove Watermark';
       return;
     }
 
@@ -897,8 +901,9 @@ async function runAutoRemoveCurrent() {
 
   } catch(err){
     item.status='error'; renderRemoveQueue();
-    toast('Error: '+err.message,'error');
+    toast('Error: '+err.message+' — try Manual Edit instead.','error');
     console.error('autoRemove:', err);
+    setManualPanelOpen(true);
   } finally {
     if(srcMat)  srcMat.delete();
     if(maskMat) maskMat.delete();
